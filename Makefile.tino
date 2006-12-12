@@ -1,0 +1,66 @@
+# $Header$
+#
+# Read instructions in Makefile.proto how to use this.
+#
+# Prototype for your source directory Makefile.tino
+# Not copyrighted as this is just a stub.
+#
+# Copyright (C)2004-2005 Valentin Hilbig, webmaster@scylla-charybdis.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# $Log$
+# Revision 1.1  2006-12-12 13:26:27  tino
+# commit for first dist
+#
+
+      PROGS=unbuffered
+       OBJS=
+#VERSIONFILE=
+#VERSIONNAME=
+# Additional (fixed) installs for
+# bin sbin lib etc man share/man inf share/inf respectively
+ INSTALLBIN=
+INSTALLSBIN=
+ INSTALLLIB=
+ INSTALLETC=
+ INSTALLMAN=
+INSTALLSMAN=
+ INSTALLINF=
+INSTALLSINF=
+#    SUBDIRS=diet
+#         CC=diet/tinodiet.sh --tinodiet
+#        CXX=diet/tinodiet.sh ++ --tinodiet
+#       LIBS=diet/libcurl.a diet/libssl.a diet/libcrypto.a diet/libz.a
+# If you use -I. or -Itino, be sure to use -I-, too.
+ ADD_CFLAGS=
+ADD_LDFLAGS=
+ ADD_LDLIBS=
+      CLEAN=
+  CLEANDIRS=
+  DISTCLEAN=
+   TINOCOPY=
+#    TINOINC=tino_common.h
+#    TINOLIB=tino/lib.h
+#INSTALLPATH=/usr/local
+# DBG_CFLAGS=
+#DBG_LDFLAGS=
+# DBG_LDLIBS=-lefence
+# STD_CFLAGS=-g -Wall -O3
+#STD_LDFLAGS=
+# STD_LDLIBS=-lstdc++
+
+Makefile::
+	$(MAKE) -C tino tino HERE="$(PWD)"
