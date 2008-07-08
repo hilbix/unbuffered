@@ -2,7 +2,7 @@
  *
  * Copy stdin to stdout and stderr, unbuffered.
  *
- * Copyright (C)2006 by Valentin Hilbig
+ * Copyright (C)2006-2008 by Valentin Hilbig
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.2  2008-07-08 20:10:03  tino
+ * Bugfix (hexdump bytecount) and Option -c
+ *
  * Revision 1.1  2006-12-12 13:26:27  tino
  * commit for first dist
- *
  */
 
 #include "tino/main_getopt.h"
@@ -32,8 +34,9 @@
 
 static int	flag_linecount, flag_hexdump;
 static char	line_terminator, *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix;
-static int	in_line, line_nr;
+static int	in_line, line_nr, flag_cat;
 static unsigned long long	byte_pos;
+static TINO_DATA		out;
 
 static void
 dump_line(const char *ptr, size_t n, int lineend)
@@ -48,31 +51,30 @@ dump_line(const char *ptr, size_t n, int lineend)
       if (!in_line)
 	line_nr++;
 
-      tino_buf_reset(&prefix);
+      tino_buf_resetO(&prefix);
       if (p)
-	tino_buf_add_s(&prefix, p);
-      tino_buf_add_sprintf(&prefix, "%5d ", line_nr);
-      p	= tino_buf_get_s(&prefix);
+	tino_buf_add_sO(&prefix, p);
+      tino_buf_add_sprintfO(&prefix, "%5d ", line_nr);
+      p	= tino_buf_get_sN(&prefix);
     }
 
   if (flag_hexdump)
-    tino_xd(stderr, (p ? p : ""), 8, byte_pos, ptr, n+lineend);
+    tino_xd(&out, (p ? p : ""), 8, byte_pos, (const unsigned char *)ptr, n+lineend);
   else
     {
       if (p && *p)
-	fputs(p, stderr);
-      fwrite(ptr, n, 1, stderr);
+	tino_data_putsA(&out, p);
+      tino_data_writeA(&out, ptr, n);
     }
 
-  byte_pos	+= n;
+  byte_pos	+= n+lineend;
 
   in_line	= !lineend;
   p		= in_line ? line_cont_suffix : line_suffix;
   if (!p && !flag_hexdump)
     p		= "\n";
   if (p && *p)
-    fputs(p, stderr);
-  fflush(stderr);
+    tino_data_putsA(&out, p);
 }
 
 static void
@@ -80,18 +82,18 @@ unbuffered(void)
 {
   TINO_BUF	buf;
 
-  tino_buf_init(&buf);
-  while (tino_buf_read(&buf, 0, -1))
+  tino_data_file(&out, (flag_cat ? 1 : 2));
+  tino_buf_initO(&buf);
+  while (tino_buf_readE(&buf, 0, -1))
     {
       size_t		n;
 
-      while ((n=tino_buf_get_len(&buf))>0)
+      while ((n=tino_buf_get_lenO(&buf))>0)
 	{
 	  const char	*ptr;
 	  size_t	k, p;
 
-
-	  ptr	= tino_buf_get(&buf);
+	  ptr	= tino_buf_getN(&buf);
 	  p	= 0;
 	  for (k=0; k<n; k++)
 	    if (ptr[k]==line_terminator)
@@ -106,22 +108,34 @@ unbuffered(void)
 
 	  if (p<n)
 	    dump_line(ptr+p, n-p, 0);
-	  tino_buf_write_away_all(&buf, 1, k);
+	  if (!flag_cat)
+	    tino_buf_write_away_allE(&buf, 1, k);
+	  else
+	    tino_buf_advanceO(&buf, k);
 	}
     }
-
+  tino_data_freeA(&out);	/* close(2)	*/
 }
 
 int
 main(int argc, char **argv)
 {
-  return tino_main_g0(unbuffered, argc, argv,
+  return tino_main_g0(unbuffered,
+		      NULL,
+		      argc, argv,
 		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
-                      "",
+                      "\tproducer | unbuffered 2>>file | consumer\n"
+                      "\tproducer | unbuffered -c | consumer\n"
+		      ,
 
                       TINO_GETOPT_USAGE
                       "h	this help"
                       ,
+
+		      TINO_GETOPT_FLAG
+		      "c	change input instead dumping to stderr, same as:\n"
+		      "		producer | unbuffered 2>&1 >/dev/null | consumer"
+		      , &flag_cat,
 
 		      TINO_GETOPT_FLAG
 		      "n	print line numbers"

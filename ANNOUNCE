@@ -1,1 +1,7 @@
-First version, it works
+Bugfix and option -c added
+
+It now needs some more syscalls as the dumped output is no more
+linebuffered, because I had to change the binding.
+
+The bugfix is for that I forgot to count lineendings in hexdump
+output.
