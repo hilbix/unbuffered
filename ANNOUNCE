@@ -1,4 +1,4 @@
-Bugfix and option -c added
+Bugfix and option -c added, also current tinolib
 
 It now needs some more syscalls as the dumped output is no more
 linebuffered, because I had to change the binding.

@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.3  2008-07-08 20:53:11  tino
+ * next dist
+ *
  * Revision 1.2  2008-07-08 20:10:03  tino
  * Bugfix (hexdump bytecount) and Option -c
  *
@@ -108,10 +111,10 @@ unbuffered(void)
 
 	  if (p<n)
 	    dump_line(ptr+p, n-p, 0);
-	  if (!flag_cat)
-	    tino_buf_write_away_allE(&buf, 1, k);
-	  else
+	  if (flag_cat)
 	    tino_buf_advanceO(&buf, k);
+	  else if (tino_buf_write_away_allE(&buf, 1, k))
+	    exit(1);	/* silently drop out	*/
 	}
     }
   tino_data_freeA(&out);	/* close(2)	*/
