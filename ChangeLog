@@ -1,0 +1,7 @@
+2008-07-08  Valentin Hilbig  <tino@zoo.03.softkill.net>
+
+	* unbuffered.c: updated to new tinolib function names
+	(dump_line): Now IO is done via tino_data
+	(dump_line): bugfix, forgot to increment bytecount on lineends in
+	hexdump.
+
