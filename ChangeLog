@@ -1,3 +1,7 @@
+2008-10-17  Valentin Hilbig  <tino@zoo.03.softkill.net>
+
+	* unbuffered.c (main): usage corrected
+
 2008-07-08  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* unbuffered.c: updated to new tinolib function names
