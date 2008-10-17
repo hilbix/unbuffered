@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.4  2008-10-17 19:17:54  tino
+ * Usage corrected
+ *
  * Revision 1.3  2008-07-08 20:53:11  tino
  * next dist
  *
@@ -127,8 +130,9 @@ main(int argc, char **argv)
 		      NULL,
 		      argc, argv,
 		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
+		      "\n"
                       "\tproducer | unbuffered 2>>file | consumer\n"
-                      "\tproducer | unbuffered -c | consumer\n"
+                      "\tproducer | unbuffered -c | consumer"
 		      ,
 
                       TINO_GETOPT_USAGE
