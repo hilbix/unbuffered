@@ -1,1 +1,4 @@
-Usage corrected
+Option -e added,
+now installs into /usr/local/bin
+
+With option -e you can escape the data properly for inclusion in an XML file.

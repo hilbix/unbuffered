@@ -2,7 +2,7 @@
  *
  * Copy stdin to stdout and stderr, unbuffered.
  *
- * Copyright (C)2006-2008 by Valentin Hilbig
+ * Copyright (C)2006-2009 by Valentin Hilbig
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.5  2009-03-17 10:41:08  tino
+ * Unready next version
+ *
  * Revision 1.4  2008-10-17 19:17:54  tino
  * Usage corrected
  *
@@ -38,7 +41,7 @@
 
 #include "unbuffered_version.h"
 
-static int	flag_linecount, flag_hexdump;
+static int	flag_linecount, flag_hexdump, flag_escape;
 static char	line_terminator, *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix;
 static int	in_line, line_nr, flag_cat;
 static unsigned long long	byte_pos;
@@ -70,7 +73,12 @@ dump_line(const char *ptr, size_t n, int lineend)
     {
       if (p && *p)
 	tino_data_putsA(&out, p);
-      tino_data_writeA(&out, ptr, n);
+#if 0
+      if (flag_escape)
+	tino_data_write_xmlA(&out, ptr, n, flag_escape-1);
+      else
+#endif
+        tino_data_writeA(&out, ptr, n);
     }
 
   byte_pos	+= n+lineend;
@@ -140,10 +148,19 @@ main(int argc, char **argv)
                       ,
 
 		      TINO_GETOPT_FLAG
-		      "c	change input instead dumping to stderr, same as:\n"
-		      "		producer | unbuffered 2>&1 >/dev/null | consumer"
+		      "c	change (or cat) mode, do the dumping to stdout, faster than:\n"
+		      "		producer | unbuffered 2>&1 >/dev/null | consumer\n"
+		      "		Without this option input is copied to output unchanged"
 		      , &flag_cat,
-
+#if 0
+		      TINO_GETOPT_FLAG
+		      TINO_GETOPT_MAX
+		      "e	escape mode, XML compatible. Give twice for CDATA.\n"
+		      "		Use with -p and -s to add XML tags\n"
+		      "		Does not work with option -x (latter takes precedence)\n"
+		      , &flag_escape,
+		      2,
+#endif
 		      TINO_GETOPT_FLAG
 		      "n	print line numbers"
 		      , &flag_linecount,
