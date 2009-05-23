@@ -1,3 +1,8 @@
+2009-05-23  Valentin Hilbig  <tino@zoo.03.softkill.net>
+
+	* unbuffered.c (main): usage corrected, added options -u and -l
+	(add_time, add_prefix, dump_line): options -u and -l
+
 2008-10-17  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* unbuffered.c (main): usage corrected

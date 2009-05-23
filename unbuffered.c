@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.6  2009-05-23 10:22:39  tino
+ * Options -l and -u
+ *
  * Revision 1.5  2009-03-17 10:41:08  tino
  * Unready next version
  *
@@ -39,36 +42,81 @@
 #include "tino/buf_printf.h"
 #include "tino/xd.h"
 
+#include <time.h>
+
 #include "unbuffered_version.h"
 
 static int	flag_linecount, flag_hexdump, flag_escape;
-static char	line_terminator, *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix;
-static int	in_line, line_nr, flag_cat;
+static char	line_terminator;
+static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix, *field_order;
+static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime;
 static unsigned long long	byte_pos;
 static TINO_DATA		out;
+static TINO_BUF			prefix;
 
+/* This is plain crap, really, however there is no good support for
+ * this all in my lib yet (there is no support for such things in
+ * nearly no language, either.  Python is best in this regard).
+ */
+/* This is wrong (on hexdump continuation lines), but I cannot help it now
+ */
+static void
+add_prefix(const char *what, ...)
+{
+  tino_va_list	list;
+
+  if (!tino_buf_get_lenO(&prefix))
+    {
+      const char *p= in_line ? line_cont_prefix : line_prefix;
+      if (p)
+	tino_buf_add_sO(&prefix, p);
+    }
+  tino_va_start(list, what);
+  tino_buf_add_vsprintfO(&prefix, &list);
+  tino_va_end(list);
+}
+
+static void
+add_time(struct tm *fn(const time_t *timep))
+{
+  time_t	tim;
+  struct tm	*tm;
+
+  time(&tim);	/* Double calc on l and u, cannot help	*/
+  tm	= fn(&tim);
+  add_prefix("[%04d%02d%02d-%02d%02d%02d]", 1900+tm->tm_year, 1+tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+}
+
+/* This is plain crap, really, however there is no good support for
+ * this all in my lib yet (there is no support for such things in
+ * nearly no language, either.  Python is best in this regard).
+ */
 static void
 dump_line(const char *ptr, size_t n, int lineend)
 {
-  const char	*p;
+  const char		*p;
 
-  p		= in_line ? line_cont_prefix : line_prefix;
+  tino_buf_resetO(&prefix);
+  if (flag_localtime)
+    add_time(localtime);
+  if (flag_utc)
+    add_time(gmtime);
   if (flag_linecount)
     {
-      static TINO_BUF	prefix;
-      
       if (!in_line)
 	line_nr++;
-
-      tino_buf_resetO(&prefix);
-      if (p)
-	tino_buf_add_sO(&prefix, p);
-      tino_buf_add_sprintfO(&prefix, "%5d ", line_nr);
-      p	= tino_buf_get_sN(&prefix);
+      add_prefix("%5d ", line_nr);
     }
 
+  /* PHP parses A ? B : C ? E : F as (A ? B : C) ? E : F which is
+   * plain crap.  Luckily we are in C which parses this correctly like
+   * if-else, which is A ? B : ( C ?  D : E )
+   */
+  p	= tino_buf_get_lenO(&prefix) ? tino_buf_get_sN(&prefix) : in_line ? line_cont_prefix : line_prefix;
+  if (!p)
+    p	= "";
   if (flag_hexdump)
-    tino_xd(&out, (p ? p : ""), 8, byte_pos, (const unsigned char *)ptr, n+lineend);
+    tino_xd(&out, p, 8, byte_pos, (const unsigned char *)ptr, n+lineend);
   else
     {
       if (p && *p)
@@ -96,7 +144,7 @@ unbuffered(void)
 {
   TINO_BUF	buf;
 
-  tino_data_file(&out, (flag_cat ? 1 : 2));
+  tino_data_fileA(&out, (flag_cat ? 1 : 2));
   tino_buf_initO(&buf);
   while (tino_buf_readE(&buf, 0, -1))
     {
@@ -162,31 +210,47 @@ main(int argc, char **argv)
 		      2,
 #endif
 		      TINO_GETOPT_FLAG
+		      "l	LOCAL timestamp each line"
+		      , &flag_localtime,
+
+		      TINO_GETOPT_FLAG
 		      "n	print line numbers"
 		      , &flag_linecount,
-
+#if 0
+		      TINO_GETOPT_ENV
 		      TINO_GETOPT_STRING
-		      "p	line prefix"
+		      TINO_GETOPT_DEFAULT
+		      "o str	comma separated order of the line fields (letter=option).\n"
+		      "		Use ,, to get a comma.  c stands for line contents."
+		      , "UNBUFFERD_ORDER",
+		      , &field_order,
+		      , "p,[l],[u],n5 ,cs"
+#endif
+		      TINO_GETOPT_STRING
+		      "p str	line prefix"
 		      , &line_prefix,
 
 		      TINO_GETOPT_STRING
-		      "q	line suffix on continuation lines"
+		      "q str	line suffix on continuation lines"
 		      , &line_cont_suffix,
 
-		      TINO_GETOPT_FLAG
 		      TINO_GETOPT_STRING
-		      "r	line prefix on continuation lines"
+		      "r str	line prefix on continuation lines"
 		      , &line_cont_prefix,
 
 		      TINO_GETOPT_STRING
-		      "s	line suffix"
+		      "s str	line suffix"
 		      , &line_suffix,
 
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_CHAR
-		      "t	line termination character (not 0!)"
+		      "t char	line termination character (not 0!)"
 		      , &line_terminator,
 		      '\n',
+
+		      TINO_GETOPT_FLAG
+		      "u	UTC timestamp each line"
+		      , &flag_utc,
 
 		      TINO_GETOPT_FLAG
 		      "x	hexdump output"
