@@ -1,4 +1,10 @@
-Options -l and -u added.
+Options -u, -l and -a added, option -n changed.
 Now installs into /usr/local/bin
 
-The new options add timestamps to the dumped copy.
+With option -u and -l you can add a date-time prefix to lines written
+to STDERR.  Option -n can be given multiple to change the line
+numbering.
+
+Option -a appends the output to STDERR instead to a file.  The file is
+created if it is missing.  To allow easy logfile rotation, from time
+to time the file is closed and reopened (thus recreated if missing).

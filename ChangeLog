@@ -3,6 +3,11 @@
 	* unbuffered.c (main): usage corrected, added options -u and -l
 	(add_time, add_prefix, dump_line): options -u and -l
 
+2009-02-12  Valentin Hilbig  <tino@firebird.03.softkill.net>
+
+	(dump_line, main): Option -n now has different count types
+	(unbuffered, main): Option -a changes
+
 2008-10-17  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* unbuffered.c (main): usage corrected

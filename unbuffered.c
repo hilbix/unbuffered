@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.7  2009-05-23 17:12:53  tino
+ * Option -a and -n changes
+ *
  * Revision 1.6  2009-05-23 10:22:39  tino
  * Options -l and -u
  *
@@ -28,14 +31,8 @@
  * Revision 1.4  2008-10-17 19:17:54  tino
  * Usage corrected
  *
- * Revision 1.3  2008-07-08 20:53:11  tino
- * next dist
- *
  * Revision 1.2  2008-07-08 20:10:03  tino
  * Bugfix (hexdump bytecount) and Option -c
- *
- * Revision 1.1  2006-12-12 13:26:27  tino
- * commit for first dist
  */
 
 #include "tino/main_getopt.h"
@@ -49,6 +46,7 @@
 static int	flag_linecount, flag_hexdump, flag_escape;
 static char	line_terminator;
 static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix, *field_order;
+static const char *append_file;
 static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime;
 static unsigned long long	byte_pos;
 static TINO_DATA		out;
@@ -105,7 +103,7 @@ dump_line(const char *ptr, size_t n, int lineend)
     {
       if (!in_line)
 	line_nr++;
-      add_prefix("%5d ", line_nr);
+      add_prefix((flag_linecount==1 ? "%5d " : flag_linecount==2 ? "%05d " : "%d "), line_nr);
     }
 
   /* PHP parses A ? B : C ? E : F as (A ? B : C) ? E : F which is
@@ -143,13 +141,21 @@ static void
 unbuffered(void)
 {
   TINO_BUF	buf;
+  int		is_open;
 
-  tino_data_fileA(&out, (flag_cat ? 1 : 2));
+  is_open	= 0;
+  if (!append_file)
+    tino_data_fileA(&out, (flag_cat ? 1 : 2));
   tino_buf_initO(&buf);
   while (tino_buf_readE(&buf, 0, -1))
     {
       size_t		n;
 
+      if (append_file && !is_open)
+	{
+	  tino_data_fileA(&out, tino_file_open_createE(append_file, O_APPEND, 0666));
+	  is_open	= 1;
+	}
       while ((n=tino_buf_get_lenO(&buf))>0)
 	{
 	  const char	*ptr;
@@ -163,8 +169,8 @@ unbuffered(void)
 		dump_line(ptr+p, k-p, 1);
 		p	= k+1;
 	      }
-	  /* We shall add nonblocking line info if it is available.
-	   * Leave this to future
+	  /* We shall, nonblockingly, read additional input data here,
+	   * if available.  Leave this to future.
 	   */
 	  TINO_XXX;
 
@@ -174,6 +180,11 @@ unbuffered(void)
 	    tino_buf_advanceO(&buf, k);
 	  else if (tino_buf_write_away_allE(&buf, 1, k))
 	    exit(1);	/* silently drop out	*/
+	}
+      if (is_open)
+	{
+	  tino_data_freeA(&out);
+	  is_open	= 0;
 	}
     }
   tino_data_freeA(&out);	/* close(2)	*/
@@ -187,13 +198,21 @@ main(int argc, char **argv)
 		      argc, argv,
 		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
 		      "\n"
-                      "\tproducer | unbuffered 2>>file | consumer\n"
-                      "\tproducer | unbuffered -c | consumer"
+                      "\t# producer | unbuffered 2>>file | consumer\n"
+                      "\t# producer | unbuffered -a file | consumer\n"
+                      "\t# producer | unbuffered -c | consumer\n"
+                      "\t# producer | unbuffered -ca file"
 		      ,
 
                       TINO_GETOPT_USAGE
                       "h	this help"
                       ,
+
+		      TINO_GETOPT_STRING
+		      "a file	append STDERR to file.  It is closed and reopened\n"
+		      "		from time to time to allow easy logfile rotation.\n"
+		      "		With option -c this becomes a data sink."
+		      , &append_file,
 
 		      TINO_GETOPT_FLAG
 		      "c	change (or cat) mode, do the dumping to stdout, faster than:\n"
@@ -214,8 +233,10 @@ main(int argc, char **argv)
 		      , &flag_localtime,
 
 		      TINO_GETOPT_FLAG
-		      "n	print line numbers"
+		      TINO_GETOPT_MAX
+		      "n	print line numbers, twice with 0, triple unindented."
 		      , &flag_linecount,
+		      3,
 #if 0
 		      TINO_GETOPT_ENV
 		      TINO_GETOPT_STRING
