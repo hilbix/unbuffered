@@ -1,10 +1,14 @@
-Options -u, -l and -a added, option -n changed.
+Options -u, -l and -a added, option -n changed, option -c improved.
 Now installs into /usr/local/bin
 
 With option -u and -l you can add a date-time prefix to lines written
 to STDERR.  Option -n can be given multiple to change the line
 numbering.
 
-Option -a appends the output to STDERR instead to a file.  The file is
+Option -a appends the output to a file and not to STDERR.  The file is
 created if it is missing.  To allow easy logfile rotation, from time
 to time the file is closed and reopened (thus recreated if missing).
+
+Option -c was unreliable in that it dumped incomplete lines.
+This has been changed such, that most time a full line will be
+written, such that you can use it to number lines etc.
