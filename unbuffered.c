@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.8  2009-07-06 00:28:38  tino
+ * Better cat mode
+ *
  * Revision 1.7  2009-05-23 17:12:53  tino
  * Option -a and -n changes
  *
@@ -169,6 +172,16 @@ unbuffered(void)
 		dump_line(ptr+p, k-p, 1);
 		p	= k+1;
 	      }
+
+	  if (p && flag_cat)
+	    {
+	      /* Fix: If we are catting, do not output incomplete
+	       * lines
+	       */
+	      tino_buf_advanceO(&buf, p);
+	      break;
+	    }
+
 	  /* We shall, nonblockingly, read additional input data here,
 	   * if available.  Leave this to future.
 	   */
