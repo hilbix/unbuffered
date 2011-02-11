@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.10  2011-02-11 21:10:49  tino
+ * Typos fixed
+ *
  * Revision 1.9  2011-02-11 21:06:57  tino
  * better Usage
  *
@@ -215,13 +218,13 @@ main(int argc, char **argv)
 		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
 		      "\n"
                       "\t# producer | unbuffered -q '' 2>>file | consumer\n"
-		      "\t\tfile becomes copy of stdin appended\n"
+		      "\t\tfile gets copy of stdin appended\n"
                       "\t# producer | unbuffered -q '' -a file | consumer\n"
 		      "\t\tAs before, but file is not kept open for easy rotation\n"
                       "\t# producer | unbuffered -c | consumer\n"
 		      "\t\tAdd LF on read boundaries (consumer sees partial lines as lines)\n"
-                      "\t# producer | unbuffered -xuca file"
-		      "\t\tOutput producer's hexdump with timestamp to file, allow rotation\n"
+                      "\t# producer | unbuffered -xuca file\n"
+		      "\t\tHexdump producer's output with timestamp to file, allow rotation"
 		      ,
 
                       TINO_GETOPT_USAGE
@@ -273,7 +276,7 @@ main(int argc, char **argv)
 
 		      TINO_GETOPT_STRING
 		      "q str	line suffix on continuation lines (default LF)\n"
-		      "		Set this to '' to suppress LF on partial lines.\n"
+		      "		Set this to '' to suppress LF on partial lines."
 		      , &line_cont_suffix,
 
 		      TINO_GETOPT_STRING
