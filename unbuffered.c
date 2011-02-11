@@ -2,7 +2,7 @@
  *
  * Copy stdin to stdout and stderr, unbuffered.
  *
- * Copyright (C)2006-2009 by Valentin Hilbig
+ * Copyright (C)2006-2011 by Valentin Hilbig
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.9  2011-02-11 21:06:57  tino
+ * better Usage
+ *
  * Revision 1.8  2009-07-06 00:28:38  tino
  * Better cat mode
  *
@@ -211,10 +214,14 @@ main(int argc, char **argv)
 		      argc, argv,
 		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
 		      "\n"
-                      "\t# producer | unbuffered 2>>file | consumer\n"
-                      "\t# producer | unbuffered -a file | consumer\n"
+                      "\t# producer | unbuffered -q '' 2>>file | consumer\n"
+		      "\t\tfile becomes copy of stdin appended\n"
+                      "\t# producer | unbuffered -q '' -a file | consumer\n"
+		      "\t\tAs before, but file is not kept open for easy rotation\n"
                       "\t# producer | unbuffered -c | consumer\n"
-                      "\t# producer | unbuffered -ca file"
+		      "\t\tAdd LF on read boundaries (consumer sees partial lines as lines)\n"
+                      "\t# producer | unbuffered -xuca file"
+		      "\t\tOutput producer's hexdump with timestamp to file, allow rotation\n"
 		      ,
 
                       TINO_GETOPT_USAGE
@@ -265,7 +272,8 @@ main(int argc, char **argv)
 		      , &line_prefix,
 
 		      TINO_GETOPT_STRING
-		      "q str	line suffix on continuation lines"
+		      "q str	line suffix on continuation lines (default LF)\n"
+		      "		Set this to '' to suppress LF on partial lines.\n"
 		      , &line_cont_suffix,
 
 		      TINO_GETOPT_STRING
@@ -273,7 +281,7 @@ main(int argc, char **argv)
 		      , &line_cont_prefix,
 
 		      TINO_GETOPT_STRING
-		      "s str	line suffix"
+		      "s str	line suffix (default LF)"
 		      , &line_suffix,
 
 		      TINO_GETOPT_DEFAULT
