@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.11  2011-02-13 23:05:27  tino
+ * compile fixes
+ *
  * Revision 1.10  2011-02-11 21:10:49  tino
  * Typos fixed
  *
@@ -147,7 +150,7 @@ dump_line(const char *ptr, size_t n, int lineend)
 }
 
 static void
-unbuffered(void)
+unbuffered(const char *arg0)
 {
   TINO_BUF	buf;
   int		is_open;
