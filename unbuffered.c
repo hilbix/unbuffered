@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.12  2011-02-13 23:11:22  tino
+ * New version which can fork a producer
+ *
  * Revision 1.11  2011-02-13 23:05:27  tino
  * compile fixes
  *
@@ -47,11 +50,12 @@
  * Bugfix (hexdump bytecount) and Option -c
  */
 
-#include "tino/main_getopt.h"
+#include "tino/main_getext.h"
+#include "tino/proc.h"
 #include "tino/buf_printf.h"
 #include "tino/xd.h"
 
-#include <time.h>
+#include <sys/time.h>
 
 #include "unbuffered_version.h"
 
@@ -59,7 +63,7 @@ static int	flag_linecount, flag_hexdump, flag_escape;
 static char	line_terminator;
 static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix, *field_order;
 static const char *append_file;
-static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime;
+static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime, flag_micro;
 static unsigned long long	byte_pos;
 static TINO_DATA		out;
 static TINO_BUF			prefix;
@@ -86,15 +90,18 @@ add_prefix(const char *what, ...)
   tino_va_end(list);
 }
 
+static struct timeval stamp;
+
 static void
 add_time(struct tm *fn(const time_t *timep))
 {
-  time_t	tim;
   struct tm	*tm;
 
-  time(&tim);	/* Double calc on l and u, cannot help	*/
-  tm	= fn(&tim);
-  add_prefix("[%04d%02d%02d-%02d%02d%02d]", 1900+tm->tm_year, 1+tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+  tm	= fn(&stamp.tv_sec);
+  if (flag_micro)
+    add_prefix("[%04d%02d%02d-%02d%02d%02d-%06ld]", 1900+tm->tm_year, 1+tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec, stamp.tv_usec);
+  else
+    add_prefix("[%04d%02d%02d-%02d%02d%02d]", 1900+tm->tm_year, 1+tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 }
 
 /* This is plain crap, really, however there is no good support for
@@ -106,6 +113,8 @@ dump_line(const char *ptr, size_t n, int lineend)
 {
   const char		*p;
 
+  if (flag_localtime || flag_utc)
+    gettimeofday(&stamp, NULL);
   tino_buf_resetO(&prefix);
   if (flag_localtime)
     add_time(localtime);
@@ -149,12 +158,56 @@ dump_line(const char *ptr, size_t n, int lineend)
     tino_data_putsA(&out, p);
 }
 
+#if 0
+static pid_t consumer;
+
 static void
-unbuffered(const char *arg0)
+terminate()
+{
+  int	status;
+  pid_t	pid;
+
+  /* Be sure not to re-enter waitpid()!	*/
+  while ((pid=tino_wait_child_poll(&status, NULL))!=0)
+    if (pid==consumer)
+      exit(status);	/* Premature termination of consumer	*/
+}
+#endif
+
+static void
+unbuffered(const char *arg0, int argc, char **argv)
 {
   TINO_BUF	buf;
   int		is_open;
+  int		fds[2];
+  pid_t		producer;
 
+
+  producer = 0;
+  if (argc)
+    {
+      if (tino_file_pipeE(fds))
+	tino_exit("cannot create pipe");
+
+      /* catch the child's output for preprocessing
+       */
+      producer = tino_fork_exec(0,fds[1],2, argv, NULL, 0, NULL);
+      tino_file_closeE(fds[1]);
+
+      /* Move the pipe's output to our stdin
+       */
+      tino_file_dup2E(fds[0],0);
+      tino_file_closeE(fds[0]);
+
+#if 0
+      /* Following is a mess.  It is only needed for a consumer, though.
+       * With a producer we see EOF on the pipe.
+       * Shall be handled implicitely by a library somehow:
+       */
+      tino_sigset(SIGCHLD, terminate);
+      terminate();	/* catch early terminated childs	*/
+#endif
+    }
   is_open	= 0;
   if (!append_file)
     tino_data_fileA(&out, (flag_cat ? 1 : 2));
@@ -201,7 +254,11 @@ unbuffered(const char *arg0)
 	  if (flag_cat)
 	    tino_buf_advanceO(&buf, k);
 	  else if (tino_buf_write_away_allE(&buf, 1, k))
-	    exit(1);	/* silently drop out	*/
+	    {
+	      /* silently drop out	*/
+	      *tino_main_errflag	= 1;
+	      break;
+	    }
 	}
       if (is_open)
 	{
@@ -210,16 +267,28 @@ unbuffered(const char *arg0)
 	}
     }
   tino_data_freeA(&out);	/* close(2)	*/
+  if (producer)
+    {
+#if 0
+      tino_sigdummy(SIGCHLD);	/* prevent reentrance of waitpid()	*/
+#endif
+      /* wait for child to finish after the pipe was closed,
+       * so give the child the chance to terminate.
+       */
+      tino_file_closeE(0);
+      *tino_main_errflag	= tino_wait_child_exact(producer, NULL);
+    }
 }
 
 int
 main(int argc, char **argv)
 {
-  return tino_main_g0(unbuffered,
+  return tino_main_g1(unbuffered,
 		      NULL,
 		      argc, argv,
+		      0, -1,
 		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
-		      "\n"
+		      " [command args...]\n"
                       "\t# producer | unbuffered -q '' 2>>file | consumer\n"
 		      "\t\tfile gets copy of stdin appended\n"
                       "\t# producer | unbuffered -q '' -a file | consumer\n"
@@ -227,7 +296,9 @@ main(int argc, char **argv)
                       "\t# producer | unbuffered -c | consumer\n"
 		      "\t\tAdd LF on read boundaries (consumer sees partial lines as lines)\n"
                       "\t# producer | unbuffered -xuca file\n"
-		      "\t\tHexdump producer's output with timestamp to file, allow rotation"
+		      "\t\tHexdump producer's output with timestamp to file, allow rotation\n"
+		      "\t# var=\"`unbuffered -q '' producer [producerargs]`\"; echo $?\n"
+		      "\t\tDisplay producer's output while catching it and it's return code"
 		      ,
 
                       TINO_GETOPT_USAGE
@@ -257,6 +328,10 @@ main(int argc, char **argv)
 		      TINO_GETOPT_FLAG
 		      "l	LOCAL timestamp each line"
 		      , &flag_localtime,
+
+		      TINO_GETOPT_FLAG
+		      "m	microseconds accuracy for timestamps."
+		      , &flag_micro,
 
 		      TINO_GETOPT_FLAG
 		      TINO_GETOPT_MAX
