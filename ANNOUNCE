@@ -1,3 +1,4 @@
-Option -m and producer can now be forked.
+Bugfix, option -a works now
 
-For forked producers unbuffered returns the return value of the producer.
+For unknown reason (I believe it worked before) the write-permission (O_WRONLY/O_RDWR) were missing for O_APPEND mode.
+This triggered another bug where the error processing entered an endless loop.

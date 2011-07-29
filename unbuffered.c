@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.13  2011-07-29 20:36:29  tino
+ * Option -a fixed
+ *
  * Revision 1.12  2011-02-13 23:11:22  tino
  * New version which can fork a producer
  *
@@ -218,7 +221,7 @@ unbuffered(const char *arg0, int argc, char **argv)
 
       if (append_file && !is_open)
 	{
-	  tino_data_fileA(&out, tino_file_open_createE(append_file, O_APPEND, 0666));
+	  tino_data_fileA(&out, tino_file_open_createE(append_file, O_APPEND|O_WRONLY, 0666));
 	  is_open	= 1;
 	}
       while ((n=tino_buf_get_lenO(&buf))>0)
