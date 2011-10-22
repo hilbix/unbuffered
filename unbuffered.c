@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.15  2011-10-22 22:12:37  tino
+ * Option -b as bugfix for -c
+ *
  * Revision 1.14  2011-10-22 20:40:18  tino
  * Options -i and -o
  *
@@ -71,7 +74,7 @@ static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suff
 static const char *append_file;
 static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime, flag_micro;
 static int	fd_in, fd_out;
-static unsigned long long	byte_pos;
+static unsigned long long	byte_pos, flag_buffer;
 static TINO_DATA		out;
 static TINO_BUF			prefix;
 
@@ -242,7 +245,7 @@ unbuffered(const char *arg0, int argc, char **argv)
 		p	= k+1;
 	      }
 
-	  if (p && flag_cat)
+	  if (p && flag_buffer)
 	    {
 	      /* Fix: If we are catting, do not output incomplete
 	       * lines
@@ -317,6 +320,12 @@ main(int argc, char **argv)
 		      "		from time to time to allow easy logfile rotation.\n"
 		      "		With option -c this becomes a data sink."
 		      , &append_file,
+
+		      TINO_GETOPT_FLAG
+		      "b	Buffer partial lines\n"
+		      "		When incomplete lines are read from stdin, buffer them.\n"
+		      "		This way only full lines are output, always.  See also -u"
+		      , &flag_buffer,
 
 		      TINO_GETOPT_FLAG
 		      "c	Change (or cat) mode, do the dumping to stdout, faster than:\n"

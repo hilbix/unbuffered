@@ -1,4 +1,9 @@
-Option -i and -o added
+Bugfix release for option -c.  Option -b added
 
-Input and output file descriptors can be specified.
-So this can read from other FDs than stdin and send to other fds than stderr.
+WARNING!  The old unbuffered -c now must be written unbuffered -bc!
+
+Incomplete lines were not output in cat mode in contrast to the Usage printed.
+This was due to a problem noted by me with incomplete lines and -u.
+Now you must use "unbuffered -bcu" instead of "unbuffered -cu".
+
+This is important.  If you rely on the old method, please update your scripts accordingly.
