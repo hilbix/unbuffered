@@ -1,3 +1,7 @@
+2011-10-22  Valentin Hilbig  <tino@noir.03.softkill.org>
+
+	* unbuffered.c (unbuffered, main): fd_in and fd_out (option -i/o)
+
 2011-02-11  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* unbuffered.c (main): usage made better

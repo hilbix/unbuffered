@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.14  2011-10-22 20:40:18  tino
+ * Options -i and -o
+ *
  * Revision 1.13  2011-07-29 20:36:29  tino
  * Option -a fixed
  *
@@ -64,9 +67,10 @@
 
 static int	flag_linecount, flag_hexdump, flag_escape;
 static char	line_terminator;
-static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix, *field_order;
+static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix, *field_format;
 static const char *append_file;
 static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime, flag_micro;
+static int	fd_in, fd_out;
 static unsigned long long	byte_pos;
 static TINO_DATA		out;
 static TINO_BUF			prefix;
@@ -213,9 +217,9 @@ unbuffered(const char *arg0, int argc, char **argv)
     }
   is_open	= 0;
   if (!append_file)
-    tino_data_fileA(&out, (flag_cat ? 1 : 2));
+    tino_data_fileA(&out, fd_out>=0 ? fd_out : flag_cat ? 1 : 2);
   tino_buf_initO(&buf);
-  while (tino_buf_readE(&buf, 0, -1))
+  while (tino_buf_readE(&buf, fd_in, -1))
     {
       size_t		n;
 
@@ -309,50 +313,68 @@ main(int argc, char **argv)
                       ,
 
 		      TINO_GETOPT_STRING
-		      "a file	append STDERR to file.  It is closed and reopened\n"
+		      "a file	Append STDERR to file.  It is closed and reopened\n"
 		      "		from time to time to allow easy logfile rotation.\n"
 		      "		With option -c this becomes a data sink."
 		      , &append_file,
 
 		      TINO_GETOPT_FLAG
-		      "c	change (or cat) mode, do the dumping to stdout, faster than:\n"
+		      "c	Change (or cat) mode, do the dumping to stdout, faster than:\n"
 		      "		producer | unbuffered 2>&1 >/dev/null | consumer\n"
 		      "		Without this option input is copied to output unchanged"
 		      , &flag_cat,
 #if 0
 		      TINO_GETOPT_FLAG
 		      TINO_GETOPT_MAX
-		      "e	escape mode, XML compatible. Give twice for CDATA.\n"
+		      "e	Escape mode, XML compatible. Give twice for CDATA.\n"
 		      "		Use with -p and -s to add XML tags\n"
 		      "		Does not work with option -x (latter takes precedence)\n"
 		      , &flag_escape,
 		      2,
 #endif
-		      TINO_GETOPT_FLAG
-		      "l	LOCAL timestamp each line"
-		      , &flag_localtime,
-
-		      TINO_GETOPT_FLAG
-		      "m	microseconds accuracy for timestamps."
-		      , &flag_micro,
-
-		      TINO_GETOPT_FLAG
-		      TINO_GETOPT_MAX
-		      "n	print line numbers, twice with 0, triple unindented."
-		      , &flag_linecount,
-		      3,
 #if 0
 		      TINO_GETOPT_ENV
 		      TINO_GETOPT_STRING
 		      TINO_GETOPT_DEFAULT
-		      "o str	comma separated order of the line fields (letter=option).\n"
+		      "f str	comma separated order of the line Fields (letter=option).\n"
 		      "		Use ,, to get a comma.  c stands for line contents."
-		      , "UNBUFFERD_ORDER",
-		      , &field_order,
+		      , "UNBUFFERD_FORMAT",
+		      , &field_format,
 		      , "p,[l],[u],n5 ,cs"
 #endif
+		      TINO_GETOPT_INT
+		      TINO_GETOPT_DEFAULT
+		      TINO_GETOPT_MIN
+		      "i	Input file descriptor instead of STDIN"
+		      , &fd_in,
+		      0,
+		      0,
+
+		      TINO_GETOPT_FLAG
+		      "l	Local timestamp each line"
+		      , &flag_localtime,
+
+		      TINO_GETOPT_FLAG
+		      "m	Microseconds accuracy for timestamps."
+		      , &flag_micro,
+
+		      TINO_GETOPT_FLAG
+		      TINO_GETOPT_MAX
+		      "n	print line Numbers, twice with 0, triple unindented."
+		      , &flag_linecount,
+		      3,
+
+		      TINO_GETOPT_INT
+		      TINO_GETOPT_DEFAULT
+		      TINO_GETOPT_MIN
+		      "o	Output file descriptor instead of STDERR\n"
+		      "		This is used instead of STDOUT in cat mode (option -c)"
+		      , &fd_out,
+		      -1,
+		      0,
+
 		      TINO_GETOPT_STRING
-		      "p str	line prefix"
+		      "p str	line Prefix"
 		      , &line_prefix,
 
 		      TINO_GETOPT_STRING
@@ -365,12 +387,12 @@ main(int argc, char **argv)
 		      , &line_cont_prefix,
 
 		      TINO_GETOPT_STRING
-		      "s str	line suffix (default LF)"
+		      "s str	line Suffix (default LF)"
 		      , &line_suffix,
 
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_CHAR
-		      "t char	line termination character (not 0!)"
+		      "t char	line Termination character (not 0!) on input"
 		      , &line_terminator,
 		      '\n',
 
@@ -379,7 +401,7 @@ main(int argc, char **argv)
 		      , &flag_utc,
 
 		      TINO_GETOPT_FLAG
-		      "x	hexdump output"
+		      "x	heXdump output"
 		      , &flag_hexdump,
 
 		      NULL

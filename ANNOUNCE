@@ -1,4 +1,4 @@
-Bugfix, option -a works now
+Option -i and -o added
 
-For unknown reason (I believe it worked before) the write-permission (O_WRONLY/O_RDWR) were missing for O_APPEND mode.
-This triggered another bug where the error processing entered an endless loop.
+Input and output file descriptors can be specified.
+So this can read from other FDs than stdin and send to other fds than stderr.
