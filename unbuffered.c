@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * $Log$
+ * Revision 1.16  2011-10-22 22:14:21  tino
+ * OOPS, added the flag as wrong variable type
+ *
  * Revision 1.15  2011-10-22 22:12:37  tino
  * Option -b as bugfix for -c
  *
@@ -72,9 +75,9 @@ static int	flag_linecount, flag_hexdump, flag_escape;
 static char	line_terminator;
 static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix, *field_format;
 static const char *append_file;
-static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime, flag_micro;
+static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime, flag_micro, flag_buffer;
 static int	fd_in, fd_out;
-static unsigned long long	byte_pos, flag_buffer;
+static unsigned long long	byte_pos;
 static TINO_DATA		out;
 static TINO_BUF			prefix;
 
