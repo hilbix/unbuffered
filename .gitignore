@@ -1,5 +1,4 @@
-Makefile
-Makefile.md5
+*.o
 *.d
 unbuffered
 unbuffered_version.h

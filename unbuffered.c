@@ -71,9 +71,18 @@
 
 #include "unbuffered_version.h"
 
-static int	flag_linecount, flag_hexdump, flag_escape;
+#undef HAVE_ESCAPE_XML
+#undef HAVE_FIELD_FORMAT
+
+static int	flag_linecount, flag_hexdump;
+#ifdef HAVE_ESCAPE_XML
+static int	flag_escape;
+#endif
 static char	line_terminator;
-static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix, *field_format;
+static const char *line_prefix, *line_suffix, *line_cont_prefix, *line_cont_suffix;
+#ifdef HAVE_FIELD_FORMAT
+static const char *field_format;
+#endif
 static const char *append_file;
 static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime, flag_micro, flag_buffer;
 static int	fd_in, fd_out;
@@ -153,7 +162,7 @@ dump_line(const char *ptr, size_t n, int lineend)
     {
       if (p && *p)
 	tino_data_putsA(&out, p);
-#if 0
+#ifdef HAVE_ESCAPE_XML
       if (flag_escape)
 	tino_data_write_xmlA(&out, ptr, n, flag_escape-1);
       else
@@ -335,7 +344,7 @@ main(int argc, char **argv)
 		      "		producer | unbuffered 2>&1 >/dev/null | consumer\n"
 		      "		Without this option input is copied to output unchanged"
 		      , &flag_cat,
-#if 0
+#ifdef HAVE_ESCAPE_XML
 		      TINO_GETOPT_FLAG
 		      TINO_GETOPT_MAX
 		      "e	Escape mode, XML compatible. Give twice for CDATA.\n"
