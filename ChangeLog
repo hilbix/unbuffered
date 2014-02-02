@@ -1,3 +1,8 @@
+2014-02-02  Valentin Hilbig  <tino@subproject.org>
+
+	* unbuffered.c (main, and other): option -d and option -v
+	(unbuffered): Bugfix: partial last lines are now output for option -b
+
 2011-10-23  Valentin Hilbig  <tino@noir.03.softkill.org>
 
 	* unbuffered.c (main, unbuffered): option -b as bugfix for -c
