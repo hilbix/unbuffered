@@ -1,2 +1,2 @@
 Announcements are now in the git commit log:
-git log --name-status --follow VERSION
+git log --follow VERSION

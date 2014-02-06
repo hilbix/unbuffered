@@ -1,3 +1,8 @@
+2014-02-06  Valentin Hilbig  <tino@subproject.org>
+
+	* unbuffered.c (start_line, unbuffered): add `+` on incomplete
+	lines
+
 2014-02-02  Valentin Hilbig  <tino@subproject.org>
 
 	* unbuffered.c (main, and other): option -d and option -v

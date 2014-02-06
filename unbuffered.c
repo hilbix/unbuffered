@@ -85,7 +85,7 @@ add_time(struct tm *fn(const time_t *timep))
 }
 
 static void
-start_line(int verbose)
+start_line(int verbose, int lineend)
 {
   char	flg;
 
@@ -100,7 +100,7 @@ start_line(int verbose)
   if (flag_utc)
     add_time(gmtime);
 
-  flg	= verbose ? '-' : ' ';
+  flg	= verbose ? '-' : lineend ? ' ' : '+';
   if (flag_verbose && producer)
     add_prefix("[%ld]", (long)producer);
 
@@ -123,7 +123,7 @@ dump_line(const char *ptr, size_t n, int lineend)
 {
   const char		*p;
 
-  start_line(0);
+  start_line(0, lineend);
   p = tino_buf_get_sN(&prefix);
 
   if (flag_hexdump)
@@ -240,7 +240,7 @@ unbuffered(const char *arg0, int argc, char **argv)
   tino_buf_initO(&buf);
   if (producer && flag_verbose)
     {
-      start_line(1);
+      start_line(1, 1);
       add_prefix("start");
       for (; *argv; argv++)
 	add_prefix(" '%s'", *argv);	/* XXX TODO sadly, escape is implemented in tino_io, not in tino_buf	*/
@@ -324,7 +324,7 @@ unbuffered(const char *arg0, int argc, char **argv)
       *tino_main_errflag	= tino_wait_child_exact(producer, &cause);
       if (flag_verbose)
 	{
-	  start_line(1);
+	  start_line(1, 1);
 	  add_prefix("end %s\n", cause);
 	  out_open();
 	  tino_data_putsA(&out, tino_buf_get_sN(&prefix));
@@ -426,7 +426,7 @@ main(int argc, char **argv)
 		      TINO_GETOPT_INT
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN
-		      "o	Output file descriptor instead of STDERR\n"
+		      "o fd	Output file descriptor instead of STDERR\n"
 		      "		This is used instead of STDOUT in cat mode (option -c)"
 		      , &fd_out,
 		      -1,
