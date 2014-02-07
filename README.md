@@ -34,10 +34,27 @@ input to producer | unbuffered -uvd producer 2>>debug.log | consumer
 
 Option `-h` prints a complete list of options, like:
 
-- option `-b`: line buffered, only output complete lines (except for the last line).
+- option `-b`: buffer incomplete lines.  Give twice to buffer all fragments.
 - option `-c`: `cat` mode, do not duplicate input, instead output stderr to stdout.
 - option '-n': output line numbers
 - option `-x`: hexdump output
+
+
+Notes:
+------
+
+To see the difference between no buffering, `-b` and `-bb` see:
+
+```bash
+show() { { echo -n "partial line "; sleep 1; echo -n " complete
+partial multiline "; sleep 1; echo " complete"; } |
+unbuffered -vuc "$@" -- cat; }; show; show -b; show -bb
+```
+
+Note that the unmodified stream is buffered as well with `-b`.  This can be
+considered a bug.  In future this might change.  To get the old behavior,
+`-bbb` and `-bbbb` will be needed.  If you want to be sure to keep the
+full buffering, use `-bbb` and `-bbbb` today.
 
 
 License:

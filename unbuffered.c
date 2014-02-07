@@ -254,6 +254,11 @@ unbuffered(const char *arg0, int argc, char **argv)
       size_t		n;
 
       out_open();
+      /* XXX TODO MISSING:
+       * for flag_buffer==1 or flag_buffer==2
+       * immediately write STDOUT(1),
+       * but buffer STDERR(dump_line)
+       */
       while ((n=tino_buf_get_lenO(&buf))>0)
 	{
 	  const char	*ptr;
@@ -268,14 +273,18 @@ unbuffered(const char *arg0, int argc, char **argv)
 		p	= k+1;
 	      }
 	  /* k=n	*/
-	  if (p && flag_buffer)
+	  if (p && (flag_buffer&1))
 	    {
 	      /* Fix: If we are catting, do not output incomplete
 	       * lines
 	       */
-	      tino_buf_advanceO(&buf, p);
-	      break;
+	      n = p;
 	    }
+	  else if (flag_buffer==2 || flag_buffer==4)	/* ((4-x)&~2)==0 <=> x=2 or x=4	*/
+	    {
+	      /* Fix: Even do not output single fragments */
+	      break;
+            }
 
 	  /* We shall, nonblockingly, read additional input data here,
 	   * if available.  Leave this to future.
@@ -292,6 +301,8 @@ unbuffered(const char *arg0, int argc, char **argv)
 	      *tino_main_errflag	= 1;
 	      break;
 	    }
+	  if (flag_buffer)
+	    break;
 	}
       out_flush();
     }
@@ -365,10 +376,13 @@ main(int argc, char **argv)
 		      , &append_file,
 
 		      TINO_GETOPT_FLAG
+		      TINO_GETOPT_MAX
 		      "b	Buffer partial lines\n"
-		      "		When incomplete lines are read from stdin, buffer them.\n"
-		      "		Except the last line you only see full lines.  See also -u"
+		      "		Buffer incomplete lines which remain after reading STDIN.\n"
+		      "		Give it twice to buffer all incomplete lines, then\n"
+		      "		except the last line you only see full lines.  See also -u"
 		      , &flag_buffer,
+		      4,
 
 		      TINO_GETOPT_FLAG
 		      "c	Change (or cat) mode, do the dumping to stdout, faster than:\n"
