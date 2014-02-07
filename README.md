@@ -54,7 +54,8 @@ unbuffered -vuc "$@" -- cat; }; show; show -b; show -bb
 Note that the unmodified stream is buffered as well with `-b`.  This can be
 considered a bug.  In future this might change.  To get the old behavior,
 `-bbb` and `-bbbb` will be needed.  If you want to be sure to keep the
-full buffering, use `-bbb` and `-bbbb` today.
+full buffering, use `-bbb` and `-bbbb` today (you only need this if `-c`
+is not present).
 
 
 License:
