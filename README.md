@@ -43,7 +43,7 @@ Option `-h` prints a complete list of options, like:
 Notes:
 ------
 
-To see the difference between no buffering, `-b` and `-bb` see (this are 3 line!):
+To see the difference between no buffering, `-b` and `-bb` see (this are 3 lines!):
 
 ```bash
 show() { { echo -n "partial line "; sleep 1; echo -n " complete
