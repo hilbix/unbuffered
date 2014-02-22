@@ -1,11 +1,11 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Thu Jan 30 04:56:32 CET 2014
+#@MD5TINOIGN@ Creation date: Sat Feb 22 03:01:20 CET 2014
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
-#@MD5TINOIGN@ 2: /home/tino/git/unbuffered/tino/Makefile.proto
+#@MD5TINOIGN@ 2: /git/git/src/unbuffered/tino/Makefile.proto
 
 #
 #@MD5TINOIGN@ included: Makefile.tino
@@ -34,7 +34,7 @@ ADD_LDFLAGS=
  INSTALLPATH=/usr/local
 
 #
-#@MD5TINOIGN@ included: /home/tino/git/unbuffered/tino/Makefile.proto
+#@MD5TINOIGN@ included: /git/git/src/unbuffered/tino/Makefile.proto
 #
 
 # Automatically generated from "PROGS" above
@@ -169,10 +169,10 @@ $(PROG1):	$(PROG1).o $(OBJS) $(LIBS)
 
 # included: unbuffered.d
 $(PROG1).o:  unbuffered.c tino/main_getext.h tino/main.h tino/buf_line.h \
- tino/buf.h tino/file.h tino/sysfix.h tino/sysfix_cygwin.h tino/type.h \
- tino/alloc.h tino/err.h tino/fatal.h tino/ex.h tino/arg.h tino/debug.h \
- tino/codec.h tino/getopt.h tino/proc.h tino/strprintf.h tino/str.h \
- tino/buf_printf.h tino/xd.h tino/data.h tino/buf_printf.h \
- unbuffered_version.h
+ tino/buf.h tino/file.h tino/sysfix.h tino/sysfix_cygwin.h \
+ tino/sysfix_diet.h tino/type.h tino/alloc.h tino/err.h tino/fatal.h \
+ tino/ex.h tino/arg.h tino/debug.h tino/codec.h tino/getopt.h tino/proc.h \
+ tino/strprintf.h tino/str.h tino/buf_printf.h tino/xd.h tino/data.h \
+ tino/buf_printf.h unbuffered_version.h
 
 # end
