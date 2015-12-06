@@ -1,11 +1,11 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Sat Feb 22 03:01:20 CET 2014
+#@MD5TINOIGN@ Creation date: Sun Dec  6 16:37:32 CET 2015
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
-#@MD5TINOIGN@ 2: /git/git/src/unbuffered/tino/Makefile.proto
+#@MD5TINOIGN@ 2: /home/tino/src/unbuffered/tino/Makefile.proto
 
 #
 #@MD5TINOIGN@ included: Makefile.tino
@@ -34,15 +34,15 @@ ADD_LDFLAGS=
  INSTALLPATH=/usr/local
 
 #
-#@MD5TINOIGN@ included: /git/git/src/unbuffered/tino/Makefile.proto
+#@MD5TINOIGN@ included: /home/tino/src/unbuffered/tino/Makefile.proto
 #
 
 # Automatically generated from "PROGS" above
       PROG1=unbuffered
 
 # Override those in Makefile.tino if needed:
- STD_CFLAGS=-g -Wall -Wno-unused-function -O3
- STD_CCFLAGS=-g -Wall -Wno-unused-function -O3
+ STD_CFLAGS=-g -Wall -Wno-unused-function -O3 -Wno-error=unused-value
+ STD_CCFLAGS=-g -Wall -Wno-unused-function -O3 -Wno-error=unused-value
 STD_LDFLAGS=
  STD_LDLIBS=
     BINPATH=bin
@@ -57,10 +57,10 @@ STD_LDFLAGS=
 # Except for the compiler generated dependencies at the end
 # from here no changes shall be needed.
 
-     CFLAGS=$(DBG_FLAGS) $(DBG_CFLAGS) $(ADD_CFLAGS) $(STD_CFLAGS) -I"$(HERE)"
-   CXXFLAGS=$(DBG_CCFLAGS) $(ADD_CCFLAGS) $(STD_CCFLAGS) -I"$(HERE)"
-    LDFLAGS=$(DBG_LDFLAGS) $(ADD_LDFLAGS) $(STD_LDFLAGS)
-     LDLIBS=$(DBG_LDLIBS) $(ADD_LDLIBS) $(STD_LDLIBS)
+     CFLAGS=$(DBG_FLAGS) $(DBG_CFLAGS) $(STD_CFLAGS) $(ADD_CFLAGS) -I"$(HERE)"
+   CXXFLAGS=$(DBG_CCFLAGS) $(STD_CCFLAGS) $(ADD_CCFLAGS) -I"$(HERE)"
+    LDFLAGS=$(DBG_LDFLAGS) $(STD_LDFLAGS) $(ADD_LDFLAGS)
+     LDLIBS=$(DBG_LDLIBS) $(STD_LDLIBS) $(ADD_LDLIBS)
 
 VERSIONFILE=$(PROG1)_version
 VERSIONNAME=$(VERSIONFILE)
@@ -170,9 +170,10 @@ $(PROG1):	$(PROG1).o $(OBJS) $(LIBS)
 # included: unbuffered.d
 $(PROG1).o:  unbuffered.c tino/main_getext.h tino/main.h tino/buf_line.h \
  tino/buf.h tino/file.h tino/sysfix.h tino/sysfix_cygwin.h \
- tino/sysfix_diet.h tino/type.h tino/alloc.h tino/err.h tino/fatal.h \
- tino/ex.h tino/arg.h tino/debug.h tino/codec.h tino/getopt.h tino/proc.h \
- tino/strprintf.h tino/str.h tino/buf_printf.h tino/xd.h tino/data.h \
- tino/buf_printf.h unbuffered_version.h
+ tino/sysfix_diet.h tino/sysfix_linux.h tino/sysfix_osx.h tino/type.h \
+ tino/alloc.h tino/err.h tino/fatal.h tino/ex.h tino/arg.h tino/debug.h \
+ tino/codec.h tino/getopt.h tino/proc.h tino/strprintf.h tino/str.h \
+ tino/buf_printf.h tino/xd.h tino/data.h tino/buf_printf.h \
+ unbuffered_version.h
 
 # end
