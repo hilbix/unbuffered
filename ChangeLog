@@ -1,3 +1,9 @@
+2016-12-11  Valentin Hilbig  <tino@medusa.03.softkill.org>
+
+	* unbuffered.c: License now is CLL
+        (main): default of -q is '', so usage corrected
+	(unbuffered): -i now works for producers
+
 2014-02-07  Valentin Hilbig  <tino@subproject.org>
 
 	* unbuffered.c (unbuffered): fixed option '-b', it now can be

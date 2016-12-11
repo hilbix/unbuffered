@@ -1,21 +1,9 @@
-/*
- * Copy stdin to stdout and stderr, unbuffered.
+/* Copy stdin to stdout and stderr, unbuffered.
  *
- * Copyright (C)2006-2013 by Valentin Hilbig
+ * This is release early code.  Use at own risk.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * This Works is placed under the terms of the Copyright Less License,
+ * see file COPYRIGHT.CLL.  USE AT OWN RISK, ABSOLUTELY NO WARRANTY.
  */
 
 #include "tino/main_getext.h"
@@ -62,7 +50,7 @@ add_prefix(const char *what, ...)
   if (!tino_buf_get_lenO(&prefix))
     {
       const char *p= in_line ? line_cont_prefix : line_prefix;
-      if (p)
+      if (p && *p)
 	tino_buf_add_sO(&prefix, p);
     }
   tino_va_start(list, what);
@@ -209,23 +197,34 @@ static void
 unbuffered(const char *arg0, int argc, char **argv)
 {
   TINO_BUF	buf;
-  int		fds[2];
 
   producer = 0;
   if (argc)
     {
+      int	fds[2], redir[TINO_OPEN_MAX], fdmax, i;
+
       if (tino_file_pipeE(fds))
 	tino_exit("cannot create pipe");
 
+      fdmax = fd_in<3 ? 3 : fd_in+1;
+
+      for (i=fdmax; --i>=0; )
+        redir[i] = -1;				/* preserve all FDs	*/
+
+      if (fd_in<0)
+        fd_in = 1;
+
+      redir[2] = flag_both ? fds[1] : 2;	/* catch stderr on -d, too	*/
+      if (fd_in==2)
+        redir[1] = redir[2];			/* swap stdin/stderr on -i2	*/
+      redir[fd_in] = fds[1];			/* catch the given FD */
+
       /* catch the child's output for preprocessing
        */
-      producer = tino_fork_exec(0, fds[1], (flag_both ? fds[1] : 2), argv, NULL, 0, NULL);
+      producer = tino_fork_execO(redir, fdmax, argv, NULL, 0, NULL);
       tino_file_closeE(fds[1]);
 
-      /* Move the pipe's output to our stdin
-       */
-      tino_file_dup2E(fds[0],0);
-      tino_file_closeE(fds[0]);
+      fd_in = fds[0];
 
 #if 0
       /* Following is a mess.  It is only needed for a consumer, though.
@@ -249,6 +248,8 @@ unbuffered(const char *arg0, int argc, char **argv)
       tino_data_putsA(&out, tino_buf_get_sN(&prefix));
     }
 
+  if (fd_in<0)
+    fd_in = 0;
   while (tino_buf_readE(&buf, fd_in, -1))
     {
       size_t		n;
@@ -353,16 +354,18 @@ main(int argc, char **argv)
 		      0, -1,
 		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
 		      " [command args...]\n"
-                      "\t# producer | unbuffered -q '' 2>>file | consumer\n"
+                      "\t# producer | unbuffered 2>>file | consumer\n"
 		      "\t\tfile gets copy of stdin appended\n"
-                      "\t# producer | unbuffered -q '' -a file | consumer\n"
+                      "\t# producer | unbuffered -a file | consumer\n"
 		      "\t\tAs before, but file is not kept open for easy rotation\n"
-                      "\t# producer | unbuffered -c | consumer\n"
+                      "\t# producer | unbuffered -cp$'\\n' | consumer\n"
 		      "\t\tAdd LF on read boundaries (consumer sees partial lines as lines)\n"
                       "\t# producer | unbuffered -xuca file\n"
 		      "\t\tHexdump producer's output with timestamp to file, allow rotation\n"
-		      "\t# var=\"`unbuffered -q '' producer [producerargs]`\"; echo $?\n"
-		      "\t\tDisplay producer's output while catching it and it's return code"
+		      "\t# var=\"`unbuffered producer [producerargs]`\"; echo $?\n"
+		      "\t\tDisplay producer's output while catching it and it's return code\n"
+		      "\t# ./unbuffered -ci2 -p 'OUT ' ./unbuffered -ci2 -p 'ERR ' ./testfile.sh; echo $?\n"
+		      "\t\tPrefix producer's STDIN with 'OUT ' and STDERR with 'ERR ' and get result"
 		      ,
 
                       TINO_GETOPT_USAGE
@@ -391,8 +394,8 @@ main(int argc, char **argv)
 		      , &flag_cat,
 
 		      TINO_GETOPT_FLAG
-		      "d	Debug forked producer by redirecting STDERR to STDOUT.\n"
-		      "		Makes only sense if not reading stdin from a pipe."
+		      "d	Debug forked producer by redirecting it's STDERR to STDOUT.\n"
+		      "		This option only has an effect on producers."
 		      , &flag_both,
 #ifdef HAVE_ESCAPE_XML
 		      TINO_GETOPT_FLAG
@@ -417,10 +420,14 @@ main(int argc, char **argv)
 		      TINO_GETOPT_INT
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN
-		      "i	Input file descriptor instead of STDIN"
+		      TINO_GETOPT_MAX
+		      "i	Input file descriptor instead of the default, usually STDIN (0).\n"
+		      "		With producers this is STDOUT (1).  See also -d.\n"
+		      "		With -i2 on producers STDIN and STDERR swap positions"
 		      , &fd_in,
+		      -1,
 		      0,
-		      0,
+		      TINO_OPEN_MAX-1,
 
 		      /* jk */
 		      TINO_GETOPT_FLAG
@@ -440,24 +447,31 @@ main(int argc, char **argv)
 		      TINO_GETOPT_INT
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN
+		      TINO_GETOPT_MAX
 		      "o fd	Output file descriptor instead of STDERR\n"
 		      "		This is used instead of STDOUT in cat mode (option -c)"
 		      , &fd_out,
 		      -1,
 		      0,
+		      TINO_OPEN_MAX-1,
 
+		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_STRING
 		      "p str	line Prefix"
 		      , &line_prefix,
+		      "",
 
+		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_STRING
-		      "q str	line suffix on continuation lines (default LF)\n"
-		      "		Set this to '' to suppress LF on partial lines."
+		      "q str	line suffix on continuation lines"
 		      , &line_cont_suffix,
+		      "",
 
+		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_STRING
 		      "r str	line prefix on continuation lines"
 		      , &line_cont_prefix,
+		      "",
 
 		      TINO_GETOPT_STRING
 		      "s str	line Suffix (default LF)"
@@ -465,7 +479,7 @@ main(int argc, char **argv)
 
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_CHAR
-		      "t char	line Termination character (not 0!) on input"
+		      "t char	line Termination character on input"
 		      , &line_terminator,
 		      '\n',
 
