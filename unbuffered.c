@@ -358,7 +358,7 @@ main(int argc, char **argv)
 		      "\t\tfile gets copy of stdin appended\n"
                       "\t# producer | unbuffered -a file | consumer\n"
 		      "\t\tAs before, but file is not kept open for easy rotation\n"
-                      "\t# producer | unbuffered -cp$'\\n' | consumer\n"
+                      "\t# producer | unbuffered -cr$'\\n' | consumer\n"
 		      "\t\tAdd LF on read boundaries (consumer sees partial lines as lines)\n"
                       "\t# producer | unbuffered -xuca file\n"
 		      "\t\tHexdump producer's output with timestamp to file, allow rotation\n"
