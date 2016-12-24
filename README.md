@@ -1,11 +1,15 @@
-Copy stdin to stdout and stderr, unbuffered
-===========================================
+# Copy stdin to stdout and stderr, unbuffered
 
 A quick tool to debug a pipe.  And more.
 
+> Please note:  Version 1.x differs from 0.x that `-q` no more defaults to `LF` if no other line modifying option is present.
+>
+> This makes it easier to use in case you want to use `-c` without other options.
+>
+> If `-v`, `-l` or `-u` is present, the default is `LF` again.
 
-Usage:
-------
+
+## Usage
 
 ```bash
 git clone https://github.com/hilbix/unbuffered.git
@@ -14,12 +18,11 @@ git submodule update --init
 make
 ```
 
-Examples:
----------
+### Examples
 
 - Record a pipe to a file.  Uses option -q to remove LFs from incomplete lines:
 ```bash
-producer | unbuffered -q '' 2>>file | consumer
+producer | unbuffered 2>>file | consumer
 ```
 
 - Record a pipe to a file with timestamping, incomplete lines are marked with `+`:
@@ -40,29 +43,38 @@ Option `-h` prints a complete list of options, like:
 - option `-x`: hexdump output
 
 
-Notes:
-------
+## Notes
 
-To see the difference between no buffering, `-b` and `-bb` see (this are 3 lines!):
+To see the difference between no buffering, `-b` and `-bb` use following example (this are 3 lines!):
 
 ```bash
-show() { { echo -n "partial line "; sleep 1; echo -n " complete
-partial multiline "; sleep 1; echo " complete"; } |
-unbuffered -vuc "$@" -- cat; }; show; show -b; show -bb
+show() { echo "unbuffered $*:"; { echo -n "partial line :"; sleep 1; echo -n ": complete
+partial :"; sleep 1; echo -n ": multiline :"; sleep 1; echo ": complete"; } |
+unbuffered -vuc "$@" -- cat; }; show; show -b; show -bb; show -bbb
 ```
 
-Note that the unmodified stream is buffered as well with `-b`.  This can be
-considered a bug.  In future this might change.  To get the old behavior,
-`-bbb` and `-bbbb` will be needed.  If you want to be sure to keep the
-full buffering, use `-bbb` and `-bbbb` today (you only need this if `-c`
-is not present).
+The unmodified stream currently is buffered as well with `-b`.
+This can be considered a bug.  In future this might change.
+
+The idea is:
+
+- With `-b` the typical "broken lines" which come from buffer flushes are understood.  Note that there must be at least one complete line seen on each read.
+- With `-bb` a real buffering is done (up to 100000 byte or just a bit more), such that fragmented lines are joined together.
+- With `-bbb` there is no memory limit for buffering of lines.  So this can eat up all of your memory, if there never is an `LF` seen.
+
+(In the example above you do not see any difference between `-bb` and `-bbb`, as the line is too short.)
 
 
-License:
---------
+### Known bugs
 
-GNU GPL v2 or higher.
+Hexdump is not yet UTF-8 aware.  As it dumps all chars with bit 7 set, this might produce some buggy output on UTF-8 terminals, including swallowed `LF`.  Hint: Pipe through `less`.
 
-It is likely that I will revoke my Copyright by CLLing this.
-Then this additionally becomes free as in "free man".
+
+# License
+
+This Works is placed under the terms of the Copyright Less License,
+see file COPYRIGHT.CLL.  USE AT OWN RISK, ABSOLUTELY NO WARRANTY.
+
+This means, it is free as in free speech, free beer and free baby.
+(Babys usually have no Copyright on them, right?)
 
