@@ -130,7 +130,7 @@ dump_line(const char *ptr, size_t n, int lineend)
       else
 #endif
 #ifdef HAVE_ESCAPE_JSON
-      if (flag_xml)
+      if (flag_json)
 	tino_data_write_jsonA(&out, ptr, n);
       else
 #endif
