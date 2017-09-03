@@ -422,7 +422,7 @@ main(int argc, char **argv)
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN
 		      TINO_GETOPT_MAX
-		      "i	Input file descriptor instead of the default, usually STDIN (0).\n"
+		      "i fd	Input file descriptor instead of the default, usually STDIN (0).\n"
 		      "		With producers this is STDOUT (1).  See also -d.\n"
 		      "		With -i2 on producers STDIN and STDERR swap positions"
 		      , &fd_in,
