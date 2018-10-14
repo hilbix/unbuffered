@@ -203,8 +203,7 @@ unbuffered(const char *arg0, int argc, char **argv)
   TINO_BUF	buf;
 
   if (!line_cont_suffix && !flag_hexdump)
-    if (flag_localtime || flag_linecount || flag_utc || flag_verbose)
-      line_cont_suffix = "\n";
+    line_cont_suffix = (flag_localtime || flag_linecount || flag_utc || flag_verbose) ? "\n" : "";
   producer = 0;
   if (argc)
     {
