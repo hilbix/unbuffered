@@ -1,0 +1,7 @@
+container:
+  image: gcc:latest
+
+make_task:
+  prep_script: git submodule update --init --recursive
+  compile_script: make
+  install_script: make install
