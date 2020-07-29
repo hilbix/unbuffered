@@ -1,7 +1,7 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Sun Oct 14 12:05:12 CEST 2018
+#@MD5TINOIGN@ Creation date: Wed Jul 29 17:14:36 CEST 2020
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
@@ -109,7 +109,7 @@ Makefile:	Makefile.md5
 	$(TOUCH) Makefile
 
 Makefile.md5:	$(VERSIONFILE).$(VERSIONEXT) always
-	@$(GAWK) -vHERE="$(HERE)" -vMAKE="$(MAKE)" -vTINOCOPY="$(TINOCOPY)" 'BEGIN { \
+	@[ -z '$(HERE)' ] || $(GAWK) -vHERE="$(HERE)" -vMAKE="$(MAKE)" -vTINOCOPY="$(TINOCOPY)" 'BEGIN { \
 	if ((getline < "tino/Makefile")>0 && \
 	    (getline < "tino/Makefile.proto")>0 && \
 	    (getline < "tino/Makefile.awk")>-1) \
@@ -173,7 +173,7 @@ $(PROG1):	$(PROG1).o $(OBJS) $(LIBS)
 $(PROG1).o:  unbuffered.c tino/main_getext.h tino/main.h tino/buf_line.h \
  tino/buf.h tino/file.h tino/sysfix.h tino/sysfix_cygwin.h \
  tino/sysfix_diet.h tino/sysfix_linux.h tino/sysfix_osx.h tino/type.h \
- tino/alloc.h tino/err.h tino/fatal.h tino/ex.h tino/arg.h tino/debug.h \
+ tino/alloc.h tino/debug.h tino/err.h tino/fatal.h tino/ex.h tino/arg.h \
  tino/codec.h tino/getopt.h tino/proc.h tino/strprintf.h tino/str.h \
  tino/buf_printf.h tino/xd.h tino/data.h tino/buf_printf.h \
  unbuffered_version.h
