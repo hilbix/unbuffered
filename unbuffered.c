@@ -201,10 +201,12 @@ static void
 unbuffered(const char *arg0, int argc, char **argv)
 {
   TINO_BUF	buf;
+  int		fd_target;
 
   if (!line_cont_suffix && !flag_hexdump)
     line_cont_suffix = (flag_localtime || flag_linecount || flag_utc || flag_verbose) ? "\n" : "";
-  producer = 0;
+  producer	= 0;
+  fd_target	= 1;
   if (argc)
     {
       int	fds[2], redir[TINO_OPEN_MAX], fdmax, i;
@@ -223,14 +225,18 @@ unbuffered(const char *arg0, int argc, char **argv)
       redir[2] = flag_both ? fds[1] : 2;	/* catch stderr on -d, too	*/
       if (fd_in==2)
         redir[1] = redir[2];			/* swap stdin/stderr on -i2	*/
-      redir[fd_in] = fds[1];			/* catch the given FD */
+      redir[fd_in] = fds[!!fd_in];		/* catch 0:input else:output of producer	*/
 
-      /* catch the child's output for preprocessing
+      tino_file_close_on_exec_setE(fds[!fd_in]);	/* we do not want to keep the other one	*/
+
+      /* catch the child's 0:input else:output for preprocessing
        */
       producer = tino_fork_execO(redir, fdmax, argv, NULL, 0, NULL);
-      tino_file_closeE(fds[1]);
-
-      fd_in = fds[0];
+      tino_file_closeE(fds[!!fd_in]);		/* close the used side of pipe	*/
+      if (fd_in)
+        fd_in = fds[0];
+      else
+        fd_target = fds[1];			/* write input to producer	*/
 
 #if 0
       /* Following is a mess.  It is only needed for a consumer, though.
@@ -256,6 +262,7 @@ unbuffered(const char *arg0, int argc, char **argv)
 
   if (fd_in<0)
     fd_in = 0;
+  tino_file_blockE(fd_in);
   while (tino_buf_readE(&buf, fd_in, -1))
     {
       size_t		n;
@@ -294,7 +301,7 @@ unbuffered(const char *arg0, int argc, char **argv)
 	    dump_line(ptr+p, n-p, 0);
 	  if (flag_cat)
 	    tino_buf_advanceO(&buf, n);
-	  else if (tino_buf_write_away_allE(&buf, 1, n))
+	  else if (tino_buf_write_away_allE(&buf, fd_target, n))
 	    {
 	      /* silently drop out	*/
 	      *tino_main_errflag	= 1;
@@ -316,7 +323,7 @@ unbuffered(const char *arg0, int argc, char **argv)
 	  out_open();
 	  ptr	= tino_buf_getN(&buf);
 	  dump_line(ptr, n, 0);
-	  if (!flag_cat && tino_buf_write_away_allE(&buf, 1, n))
+	  if (!flag_cat && tino_buf_write_away_allE(&buf, fd_target, n))
 	    *tino_main_errflag	= 1;
 	}
   }
@@ -330,7 +337,9 @@ unbuffered(const char *arg0, int argc, char **argv)
       /* wait for child to finish after the pipe was closed,
        * so give the child the chance to terminate.
        */
-      tino_file_closeE(0);
+      tino_file_closeE(fd_in);
+      if (fd_out != fd_target)
+        tino_file_closeE(fd_target);
       *tino_main_errflag	= tino_wait_child_exact(producer, &cause);
       if (flag_verbose)
 	{
