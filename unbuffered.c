@@ -58,7 +58,7 @@ add_prefix(const char *what, ...)
     {
       const char *p= in_line ? line_cont_prefix : line_prefix;
       if (p && *p)
-	tino_buf_add_sO(&prefix, p);
+        tino_buf_add_sO(&prefix, p);
     }
   tino_va_start(list, what);
   tino_buf_add_vsprintfO(&prefix, &list);
@@ -102,7 +102,7 @@ start_line(int verbose, int lineend)
   if (flag_linecount)
     {
       if (!in_line)
-	line_nr++;
+        line_nr++;
       add_prefix((flag_linecount==1 ? "%5d%c" : flag_linecount==2 ? "%05d%c" : "%d%c"), line_nr, flg);
     }
   else if (flag_verbose)
@@ -126,15 +126,15 @@ dump_line(const char *ptr, size_t n, int lineend)
   else
     {
       if (p && *p)
-	tino_data_putsA(&out, p);
+        tino_data_putsA(&out, p);
 #ifdef HAVE_ESCAPE_XML
       if (flag_xml)
-	tino_data_write_xmlA(&out, ptr, n, flag_xml-1);
+        tino_data_write_xmlA(&out, ptr, n, flag_xml-1);
       else
 #endif
 #ifdef HAVE_ESCAPE_JSON
       if (flag_json)
-	tino_data_write_jsonA(&out, ptr, n);
+        tino_data_write_jsonA(&out, ptr, n);
       else
 #endif
         tino_data_writeA(&out, ptr, n);
@@ -222,7 +222,7 @@ unbuffered(const char *arg0, int argc, char **argv)
       int	fds[2], redir[TINO_OPEN_MAX], fdmax, i;
 
       if (tino_file_pipeE(fds))
-	tino_exit("cannot create pipe");
+        tino_exit("cannot create pipe");
 
       fdmax = fd_in<3 ? 3 : fd_in+1;
 
@@ -266,7 +266,7 @@ unbuffered(const char *arg0, int argc, char **argv)
       start_line(1, 1);
       add_prefix("start");
       for (; *argv; argv++)
-	add_prefix(" '%s'", *argv);	/* XXX TODO sadly, escape is implemented in tino_io, not in tino_buf	*/
+        add_prefix(" '%s'", *argv);	/* XXX TODO sadly, escape is implemented in tino_io, not in tino_buf	*/
       add_prefix("\n");
       out_open();
       tino_data_putsA(&out, tino_buf_get_sN(&prefix));
@@ -286,42 +286,42 @@ unbuffered(const char *arg0, int argc, char **argv)
        * but buffer STDERR(dump_line)
        */
       while ((n=tino_buf_get_lenO(&buf))>0)
-	{
-	  const char	*ptr;
-	  size_t	k, p;
+        {
+          const char	*ptr;
+          size_t	k, p;
 
-	  ptr	= tino_buf_getN(&buf);
-	  p	= 0;
-	  for (k=0; k<n; k++)
-	    if (ptr[k]==line_terminator)
-	      {
-		dump_line(ptr+p, k-p, 1);
-		p	= k+1;
-	      }
-	  /* k=n	*/
-	  if (flag_buffer && p)
-	    n = p;	/* do not output incomplete line	*/
-	  else if ((flag_buffer>1 && n<=99999) || flag_buffer>2)
-	    break;		/* buffer fragments	*/
+          ptr	= tino_buf_getN(&buf);
+          p	= 0;
+          for (k=0; k<n; k++)
+            if (ptr[k]==line_terminator)
+              {
+                dump_line(ptr+p, k-p, 1);
+                p	= k+1;
+              }
+          /* k=n	*/
+          if (flag_buffer && p)
+            n = p;	/* do not output incomplete line	*/
+          else if ((flag_buffer>1 && n<=99999) || flag_buffer>2)
+            break;		/* buffer fragments	*/
 
-	  /* We shall, nonblockingly, read additional input data here,
-	   * if available.  Leave this to future.
-	   */
-	  TINO_XXX;
+          /* We shall, nonblockingly, read additional input data here,
+           * if available.  Leave this to future.
+           */
+          TINO_XXX;
 
-	  if (p<n)
-	    dump_line(ptr+p, n-p, 0);
-	  if (flag_cat)
-	    tino_buf_advanceO(&buf, n);
-	  else if (tino_buf_write_away_allE(&buf, fd_target, n))
-	    {
-	      /* silently drop out	*/
-	      *tino_main_errflag	= 1;
-	      break;
-	    }
-	  if (flag_buffer)
-	    break;
-	}
+          if (p<n)
+            dump_line(ptr+p, n-p, 0);
+          if (flag_cat)
+            tino_buf_advanceO(&buf, n);
+          else if (tino_buf_write_away_allE(&buf, fd_target, n))
+            {
+              /* silently drop out	*/
+              *tino_main_errflag	= 1;
+              break;
+            }
+          if (flag_buffer)
+            break;
+        }
       out_flush();
     }
   {
@@ -354,12 +354,12 @@ unbuffered(const char *arg0, int argc, char **argv)
         tino_file_closeE(fd_target);
       *tino_main_errflag	= tino_wait_child_exact(producer, &cause);
       if (flag_verbose)
-	{
-	  start_line(1, 1);
-	  add_prefix("end %s\n", cause);
-	  out_open();
-	  tino_data_putsA(&out, tino_buf_get_sN(&prefix));
-	}
+        {
+          start_line(1, 1);
+          add_prefix("end %s\n", cause);
+          out_open();
+          tino_data_putsA(&out, tino_buf_get_sN(&prefix));
+        }
     }
   out_close();			/* close(2)	*/
 }
@@ -368,74 +368,74 @@ int
 main(int argc, char **argv)
 {
   return tino_main_g1(unbuffered,
-		      NULL,
-		      argc, argv,
-		      0, -1,
-		      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
-		      " [command args...]\n"
+                      NULL,
+                      argc, argv,
+                      0, -1,
+                      TINO_GETOPT_VERSION(UNBUFFERED_VERSION)
+                      " [command args...]\n"
                       "\t# producer | unbuffered 2>>file | consumer\n"
-		      "\t\tfile gets copy of stdin appended\n"
+                      "\t\tfile gets copy of stdin appended\n"
                       "\t# producer | unbuffered -a file | consumer\n"
-		      "\t\tAs before, but file is not kept open for easy rotation\n"
+                      "\t\tAs before, but file is not kept open for easy rotation\n"
                       "\t# producer | unbuffered -cq$'\\n' | consumer\n"
-		      "\t\tAdd LF on read boundaries (consumer sees partial lines as lines)\n"
+                      "\t\tAdd LF on read boundaries (consumer sees partial lines as lines)\n"
                       "\t# producer | unbuffered -xuca file\n"
-		      "\t\tHexdump producer's output with timestamp to file, allow rotation\n"
-		      "\t# var=\"`unbuffered producer [producerargs]`\"; echo $?\n"
-		      "\t\tDisplay producer's output while catching it and it's return code\n"
-		      "\t# ./unbuffered -ci2 -bbp 'OUT ' ./unbuffered -ci2 -bbp 'ERR ' ./testfile.sh; echo $?\n"
-		      "\t\tPrefix producer's STDIN with 'OUT ' and STDERR with 'ERR ' and get result\n"
-		      "\t\t(Hint: The 1st unbuffered gets STDOUT of testfile on STDERR from 2nd)\n"
-		      "\t\tNote that producer should not produce output on both channels too fast."
-		      ,
+                      "\t\tHexdump producer's output with timestamp to file, allow rotation\n"
+                      "\t# var=\"`unbuffered producer [producerargs]`\"; echo $?\n"
+                      "\t\tDisplay producer's output while catching it and it's return code\n"
+                      "\t# ./unbuffered -ci2 -bbp 'OUT ' ./unbuffered -ci2 -bbp 'ERR ' ./testfile.sh; echo $?\n"
+                      "\t\tPrefix producer's STDIN with 'OUT ' and STDERR with 'ERR ' and get result\n"
+                      "\t\t(Hint: The 1st unbuffered gets STDOUT of testfile on STDERR from 2nd)\n"
+                      "\t\tNote that producer should not produce output on both channels too fast."
+                      ,
 
                       TINO_GETOPT_USAGE
                       "h	this help"
                       ,
 
-		      TINO_GETOPT_STRING
-		      "a file	Append STDERR to file.  It is closed and reopened\n"
-		      "		from time to time to allow easy logfile rotation.\n"
-		      "		With option -c this becomes a data sink."
-		      , &append_file,
+                      TINO_GETOPT_STRING
+                      "a file	Append STDERR to file.  It is closed and reopened\n"
+                      "		from time to time to allow easy logfile rotation.\n"
+                      "		With option -c this becomes a data sink."
+                      , &append_file,
 
-		      TINO_GETOPT_FLAG
-		      TINO_GETOPT_MAX
-		      "b	Buffer partial lines\n"
-		      "		Buffer incomplete lines which remain after reading STDIN.\n"
-		      "		Give it twice to buffer all incomplete lines up to 100kB.\n"
-		      "		Triple it to force buffering even on longer lines"
-		      , &flag_buffer,
-		      3,
+                      TINO_GETOPT_FLAG
+                      TINO_GETOPT_MAX
+                      "b	Buffer partial lines\n"
+                      "		Buffer incomplete lines which remain after reading STDIN.\n"
+                      "		Give it twice to buffer all incomplete lines up to 100kB.\n"
+                      "		Triple it to force buffering even on longer lines"
+                      , &flag_buffer,
+                      3,
 
-		      TINO_GETOPT_FLAG
-		      "c	Change (or cat) mode, do the dumping to stdout, faster than:\n"
-		      "		producer | unbuffered 2>&1 >/dev/null | consumer\n"
-		      "		Without this option input is copied to output unchanged"
-		      , &flag_cat,
+                      TINO_GETOPT_FLAG
+                      "c	Change (or cat) mode, do the dumping to stdout, faster than:\n"
+                      "		producer | unbuffered 2>&1 >/dev/null | consumer\n"
+                      "		Without this option input is copied to output unchanged"
+                      , &flag_cat,
 
-		      TINO_GETOPT_FLAG
-		      "d	Debug forked producer by redirecting it's STDERR to STDOUT.\n"
-		      "		This option only has an effect on producers."
-		      , &flag_both,
+                      TINO_GETOPT_FLAG
+                      "d	Debug forked producer by redirecting it's STDERR to STDOUT.\n"
+                      "		This option only has an effect on producers."
+                      , &flag_both,
 #ifdef HAVE_ESCAPE_XML
-		      TINO_GETOPT_FLAG
-		      TINO_GETOPT_MAX
-		      "e	Escape mode, XML compatible. Give twice for CDATA.\n"
-		      "		Use with -p and -s to add XML tags\n"
-		      "		Does not work with option -x (latter takes precedence)\n"
-		      , &flag_xml,
-		      2,
+                      TINO_GETOPT_FLAG
+                      TINO_GETOPT_MAX
+                      "e	Escape mode, XML compatible. Give twice for CDATA.\n"
+                      "		Use with -p and -s to add XML tags\n"
+                      "		Does not work with option -x (latter takes precedence)\n"
+                      , &flag_xml,
+                      2,
 #endif
 #if 0
-		      TINO_GETOPT_ENV
-		      TINO_GETOPT_STRING
-		      TINO_GETOPT_DEFAULT
-		      "f str	comma separated order of the line Fields (letter=option).\n"
-		      "		Use ,, to get a comma.  c stands for line contents."
-		      , "UNBUFFERD_FORMAT",
-		      , &field_format,
-		      , "p,[l],[u],n5 ,cs"
+                      TINO_GETOPT_ENV
+                      TINO_GETOPT_STRING
+                      TINO_GETOPT_DEFAULT
+                      "f str	comma separated order of the line Fields (letter=option).\n"
+                      "		Use ,, to get a comma.  c stands for line contents."
+                      , "UNBUFFERD_FORMAT",
+                      , &field_format,
+                      , "p,[l],[u],n5 ,cs"
 #endif
 #if 0
                       TINO_GETOPT_FLAG
@@ -444,24 +444,24 @@ main(int argc, char **argv)
                       , &flag_session,
 #endif
 
-		      TINO_GETOPT_INT
-		      TINO_GETOPT_DEFAULT
-		      TINO_GETOPT_MIN
-		      TINO_GETOPT_MAX
-		      "i fd	Input file descriptor instead of the default, usually STDIN (0).\n"
-		      "		With producers this is STDOUT (1).  See also -d.\n"
-		      "		With -i2 on producers STDIN and STDERR swap positions"
-		      , &fd_in,
-		      -1,
-		      0,
-		      TINO_OPEN_MAX-1,
+                      TINO_GETOPT_INT
+                      TINO_GETOPT_DEFAULT
+                      TINO_GETOPT_MIN
+                      TINO_GETOPT_MAX
+                      "i fd	Input file descriptor instead of the default, usually STDIN (0).\n"
+                      "		With producers this is STDOUT (1).  See also -d.\n"
+                      "		With -i2 on producers STDIN and STDERR swap positions"
+                      , &fd_in,
+                      -1,
+                      0,
+                      TINO_OPEN_MAX-1,
 
 #ifdef HAVE_ESCAPE_JSON
-		      TINO_GETOPT_FLAG
-		      "j	Escape mode, JSON compatible\n"
-		      "		Use with -p and -s to add JSON framing\n"
-		      "		Does not work with option -x (latter takes precedence)\n"
-		      , &flag_json,
+                      TINO_GETOPT_FLAG
+                      "j	Escape mode, JSON compatible\n"
+                      "		Use with -p and -s to add JSON framing\n"
+                      "		Does not work with option -x (latter takes precedence)\n"
+                      , &flag_json,
 #endif
 
                       TINO_GETOPT_FLAG
@@ -469,70 +469,70 @@ main(int argc, char **argv)
                       "		Unless used with -i0 this has a BUG: Unbuffered terminates too early."
                       , &flag_killme,
 
-		      TINO_GETOPT_FLAG
-		      "l	Local timestamp each line"
-		      , &flag_localtime,
+                      TINO_GETOPT_FLAG
+                      "l	Local timestamp each line"
+                      , &flag_localtime,
 
-		      TINO_GETOPT_FLAG
-		      "m	Microseconds accuracy for timestamps."
-		      , &flag_micro,
+                      TINO_GETOPT_FLAG
+                      "m	Microseconds accuracy for timestamps."
+                      , &flag_micro,
 
-		      TINO_GETOPT_FLAG
-		      TINO_GETOPT_MAX
-		      "n	print line Numbers, twice with 0, triple unindented."
-		      , &flag_linecount,
-		      3,
+                      TINO_GETOPT_FLAG
+                      TINO_GETOPT_MAX
+                      "n	print line Numbers, twice with 0, triple unindented."
+                      , &flag_linecount,
+                      3,
 
-		      TINO_GETOPT_INT
-		      TINO_GETOPT_DEFAULT
-		      TINO_GETOPT_MIN
-		      TINO_GETOPT_MAX
-		      "o fd	Output file descriptor instead of STDERR\n"
-		      "		This is used instead of STDOUT in cat mode (option -c)"
-		      , &fd_out,
-		      -1,
-		      0,
-		      TINO_OPEN_MAX-1,
+                      TINO_GETOPT_INT
+                      TINO_GETOPT_DEFAULT
+                      TINO_GETOPT_MIN
+                      TINO_GETOPT_MAX
+                      "o fd	Output file descriptor instead of STDERR\n"
+                      "		This is used instead of STDOUT in cat mode (option -c)"
+                      , &fd_out,
+                      -1,
+                      0,
+                      TINO_OPEN_MAX-1,
 
-		      TINO_GETOPT_STRING
-		      "p str	line Prefix"
-		      , &line_prefix,
+                      TINO_GETOPT_STRING
+                      "p str	line Prefix"
+                      , &line_prefix,
 
-		      TINO_GETOPT_STRING
-		      "q str	line suffix on incomplete lines\n"
-		      "		(Unless -x this defaults to LF for options: l n u v)"
-		      , &line_cont_suffix,
+                      TINO_GETOPT_STRING
+                      "q str	line suffix on incomplete lines\n"
+                      "		(Unless -x this defaults to LF for options: l n u v)"
+                      , &line_cont_suffix,
 
-		      TINO_GETOPT_STRING
-		      "r str	line prefix on continuation lines"
-		      , &line_cont_prefix,
+                      TINO_GETOPT_STRING
+                      "r str	line prefix on continuation lines"
+                      , &line_cont_prefix,
 
-		      TINO_GETOPT_STRING
-		      "s str	line Suffix (unless -x this defaults to LF)"
-		      , &line_suffix,
+                      TINO_GETOPT_STRING
+                      "s str	line Suffix (unless -x this defaults to LF)"
+                      , &line_suffix,
 
-		      TINO_GETOPT_DEFAULT
-		      TINO_GETOPT_CHAR
-		      "t char	line Termination character on input"
-		      , &line_terminator,
-		      '\n',
+                      TINO_GETOPT_DEFAULT
+                      TINO_GETOPT_CHAR
+                      "t char	line Termination character on input"
+                      , &line_terminator,
+                      '\n',
 
-		      TINO_GETOPT_FLAG
-		      "u	UTC timestamp each line"
-		      , &flag_utc,
+                      TINO_GETOPT_FLAG
+                      "u	UTC timestamp each line"
+                      , &flag_utc,
 
-		      TINO_GETOPT_FLAG
-		      "v	Verbosely report return code of forked producer.\n"
-		      "		Also adds a marker after the prefixes:\n"
-		      "		'-' for informational, ' ' for complete, '+' for incomplete lines."
-		      , &flag_verbose,
+                      TINO_GETOPT_FLAG
+                      "v	Verbosely report return code of forked producer.\n"
+                      "		Also adds a marker after the prefixes:\n"
+                      "		'-' for informational, ' ' for complete, '+' for incomplete lines."
+                      , &flag_verbose,
 
-		      /* w */
-		      TINO_GETOPT_FLAG
-		      "x	heXdump output"
-		      , &flag_hexdump,
+                      /* w */
+                      TINO_GETOPT_FLAG
+                      "x	heXdump output"
+                      , &flag_hexdump,
 
-		      /* yz */
-		      NULL
-		      );
+                      /* yz */
+                      NULL
+                      );
 }
