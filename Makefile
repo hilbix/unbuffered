@@ -1,7 +1,7 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Wed Jul 29 17:14:36 CEST 2020
+#@MD5TINOIGN@ Creation date: Mon Dec  5 10:08:14 CET 2022
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
@@ -175,7 +175,7 @@ $(PROG1).o:  unbuffered.c tino/main_getext.h tino/main.h tino/buf_line.h \
  tino/sysfix_diet.h tino/sysfix_linux.h tino/sysfix_osx.h tino/type.h \
  tino/alloc.h tino/debug.h tino/err.h tino/fatal.h tino/ex.h tino/arg.h \
  tino/codec.h tino/getopt.h tino/proc.h tino/strprintf.h tino/str.h \
- tino/buf_printf.h tino/xd.h tino/data.h tino/buf_printf.h \
+ tino/buf_printf.h tino/xd.h tino/data.h tino/buf_printf.h tino/signals.h \
  unbuffered_version.h
 
 # end
