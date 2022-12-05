@@ -437,7 +437,13 @@ main(int argc, char **argv)
 		      , &field_format,
 		      , "p,[l],[u],n5 ,cs"
 #endif
-		      /* g */
+#if 0
+                      TINO_GETOPT_FLAG
+                      "g	start a (global) session (setsid) for the child\n"
+                      "		-k then waits for the session and not the immediate child"
+                      , &flag_session,
+#endif
+
 		      TINO_GETOPT_INT
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN
