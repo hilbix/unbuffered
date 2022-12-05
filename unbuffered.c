@@ -11,6 +11,8 @@
 #include "tino/buf_printf.h"
 #include "tino/xd.h"
 
+#include "tino/signals.h"
+
 #include <sys/time.h>
 
 #include "unbuffered_version.h"
@@ -20,6 +22,7 @@
 #undef HAVE_FIELD_FORMAT	/* not yet implemented	*/
 
 static int	flag_linecount, flag_hexdump, flag_both, flag_verbose;
+static int	flag_killme;
 #ifdef HAVE_ESCAPE_XML
 static int	flag_xml;
 #endif
@@ -147,7 +150,15 @@ dump_line(const char *ptr, size_t n, int lineend)
     tino_data_putsA(&out, p);
 }
 
-#if 0
+/* Actually, this is an awful hack for dying consumers.
+ *
+ * The right thing to do is to start a session on the child
+ * and wait for the session to terminate.
+ *
+ * This would catch consumers, which go away before all data is read.
+ * However this variant also might have it's use on deamons.
+ * So "session" mode definitively needs to be some (independent) option.
+ */
 static pid_t consumer;
 
 static void
@@ -161,7 +172,6 @@ terminate()
     if (pid==consumer)
       exit(status);	/* Premature termination of consumer	*/
 }
-#endif
 
 static void
 out_open(void)
@@ -238,14 +248,16 @@ unbuffered(const char *arg0, int argc, char **argv)
       else
         fd_target = fds[1];			/* write input to producer	*/
 
-#if 0
-      /* Following is a mess.  It is only needed for a consumer, though.
-       * With a producer we see EOF on the pipe.
-       * Shall be handled implicitely by a library somehow:
-       */
-      tino_sigset(SIGCHLD, terminate);
-      terminate();	/* catch early terminated childs	*/
-#endif
+      if (flag_killme)
+        {
+          /* Following is a mess.  It is only needed for a consumer, though.
+           * With a producer we see EOF on the pipe.
+           * Shall be handled implicitely by a library somehow:
+           */
+          consumer	= producer;		/* it's a static, so 0 if not set here */
+          tino_sigset(SIGCHLD, terminate);
+          terminate();	/* catch early terminated childs	*/
+        }
     }
 
   tino_buf_initO(&buf);
@@ -317,23 +329,23 @@ unbuffered(const char *arg0, int argc, char **argv)
 
       /* in case of flag_buffer: send the rest	*/
       if ((n=tino_buf_get_lenO(&buf))>0)
-	{
-	  const char	*ptr;
+        {
+          const char	*ptr;
 
-	  out_open();
-	  ptr	= tino_buf_getN(&buf);
-	  dump_line(ptr, n, 0);
-	  if (!flag_cat && tino_buf_write_away_allE(&buf, fd_target, n))
-	    *tino_main_errflag	= 1;
-	}
+          out_open();
+          ptr	= tino_buf_getN(&buf);
+          dump_line(ptr, n, 0);
+          if (!flag_cat && tino_buf_write_away_allE(&buf, fd_target, n))
+            *tino_main_errflag	= 1;
+        }
   }
   if (producer)
     {
       char *cause;
 
-#if 0
-      tino_sigdummy(SIGCHLD);	/* prevent reentrance of waitpid()	*/
-#endif
+      if (consumer)
+        tino_sigdummy(SIGCHLD);	/* prevent reentrance of waitpid()	*/
+
       /* wait for child to finish after the pipe was closed,
        * so give the child the chance to terminate.
        */
@@ -445,7 +457,12 @@ main(int argc, char **argv)
 		      "		Does not work with option -x (latter takes precedence)\n"
 		      , &flag_json,
 #endif
-		      /* k */
+
+                      TINO_GETOPT_FLAG
+                      "k	detect death of command and terminate with it's return code early\n"
+                      "		Unless used with -i0 this has a BUG: Unbuffered terminates too early."
+                      , &flag_killme,
+
 		      TINO_GETOPT_FLAG
 		      "l	Local timestamp each line"
 		      , &flag_localtime,
