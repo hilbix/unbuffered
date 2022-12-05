@@ -37,6 +37,7 @@ static const char *field_format;
 static const char *append_file;
 static int	in_line, line_nr, flag_cat, flag_utc, flag_localtime, flag_micro, flag_buffer;
 static int	fd_in, fd_out;
+static int	fd_write;
 static unsigned long long	byte_pos;
 static TINO_DATA		out;
 static int			out_is_open;
@@ -216,7 +217,7 @@ unbuffered(const char *arg0, int argc, char **argv)
   if (!line_cont_suffix && !flag_hexdump)
     line_cont_suffix = (flag_localtime || flag_linecount || flag_utc || flag_verbose) ? "\n" : "";
   producer	= 0;
-  fd_target	= 1;
+  fd_target	= fd_write<0 ? 1 : fd_write;
   if (argc)
     {
       int	fds[2], redir[TINO_OPEN_MAX], fdmax, i;
@@ -527,7 +528,17 @@ main(int argc, char **argv)
                       "		'-' for informational, ' ' for complete, '+' for incomplete lines."
                       , &flag_verbose,
 
-                      /* w */
+                      TINO_GETOPT_INT
+                      TINO_GETOPT_DEFAULT
+                      TINO_GETOPT_MIN
+                      TINO_GETOPT_MAX
+                      "w fd	Output file descriptor instead of STDOUT\n"
+                      "		This is not used in cat mode (option -c)"
+                      , &fd_write,
+                      -1,
+                      0,
+                      TINO_OPEN_MAX-1,
+
                       TINO_GETOPT_FLAG
                       "x	heXdump output"
                       , &flag_hexdump,
