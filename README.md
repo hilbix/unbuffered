@@ -35,6 +35,18 @@ producer | unbuffered -uv 2>>file | consumer
 input to producer | unbuffered -uvd producer 2>>debug.log | consumer
 ```
 
+- Hexdump stdin/stdout of a command to stderr
+```bash
+unbuffered -ki0 -x -p'Ia ' -r'Ib ' unbuffered -x -p'Oa ' -r'Ob ' command args..
+```
+
+- Hexdump stdin/stdout/stderr of a command to FD3 (which can be redirected to a file like here in the example: `/tmp/dump`)
+- stdin, stdout and stderr are passed through to/from the command unharmed
+- note that the sequence of the unbuffered commands is important here
+```bash
+3>/tmp/dump unbuffered -x -i2 -w2 -o3 -p'Ea ' -r'Eb ' unbuffered -x -o3 -p'Oa ' -r'Ob ' unbuffered -x -ki0 -o3 -p'Ia ' -r 'Ib ' -- command args..
+```
+
 Option `-h` prints a complete list of options, like:
 
 - option `-b`: buffer incomplete lines.  Give twice to buffer all fragments.
